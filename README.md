@@ -29,7 +29,9 @@ per-site.
   click away, just far less prominent, and returns to full size on hover
 - **Theme-matched vote/action/share buttons** — the vote button group,
   comment action bar, and post share button now follow your chosen theme's
-  light/dark scheme instead of always rendering with a black background
+  light/dark scheme instead of always rendering with a black background;
+  toggle "Force theme colors on vote/comment/share buttons" off (on by
+  default) to keep Reddit's own colors on just those elements instead
 
 ### General readability (works everywhere)
 - **7 themes** — Light, Sepia, Dark, High Contrast, Solarized Light/Dark, Nord

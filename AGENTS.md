@@ -280,6 +280,17 @@ features (themes, fonts, spacing) intended to work on any website over time.
   (to also reach the individual upvote/downvote buttons inside),
   `[data-action-bar-action="comments"]`, and `a[name="comments-action-
   button"]`.
+- Forcing these three components' colors is a deliberate fix for a Reddit-
+  side contrast bug (see above), but not every reader wants it — some may
+  prefer Reddit's own (even if low-contrast) look on
+  just these elements. Added `reddit.forceButtonColors` (default `true`,
+  `lib/shared.js`), toggled as `gr-rd-forcebtncolors` on `<html>` by
+  `content.js`; the CSS rule above is now scoped to
+  `html.gr-reddit.gr-rd-forcebtncolors ...` instead of unconditionally on
+  `html.gr-reddit`, so turning the new "Force theme colors on vote/comment/
+  share buttons" setting off (in `popup/` or `options/`) restores Reddit's
+  own colors on just those three components without affecting any other
+  theming.
 
 ## Typography settings gotchas
 

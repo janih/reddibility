@@ -54,12 +54,17 @@ html.gr-reddit * {
    (light/dark, matching each theme's `scheme`) on :root.gr-active, which is
    a normal inherited property flowing down into shadow trees; re-declaring
    it here (plus a direct background-color fallback) keeps it pinned even
-   if these components set their own :host { color-scheme } internally. */
-html.gr-reddit .rpl-vote-button-group,
-html.gr-reddit .rpl-vote-button-group button,
-html.gr-reddit [data-action-bar-action="comments"],
-html.gr-reddit a[name="comments-action-button"],
-html.gr-reddit shreddit-post-share-button {
+   if these components set their own :host { color-scheme } internally.
+   Gated behind gr-rd-forcebtncolors (on by default) so this can be turned
+   off for readers who'd rather keep Reddit's own colors on just these
+   elements — e.g. its low-contrast logged-out look isn't wanted by
+   everyone even though it was originally a Reddit-side bug we happened to
+   fix as a side effect. */
+html.gr-reddit.gr-rd-forcebtncolors .rpl-vote-button-group,
+html.gr-reddit.gr-rd-forcebtncolors .rpl-vote-button-group button,
+html.gr-reddit.gr-rd-forcebtncolors [data-action-bar-action="comments"],
+html.gr-reddit.gr-rd-forcebtncolors a[name="comments-action-button"],
+html.gr-reddit.gr-rd-forcebtncolors shreddit-post-share-button {
   color-scheme: var(--gr-color-scheme, light) !important;
   background-color: var(--gr-bg) !important;
 }
