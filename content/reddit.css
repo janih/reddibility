@@ -117,6 +117,23 @@ html.gr-reddit.gr-rd-widen .grid-container {
   max-width: none !important;
 }
 
+/* --- Fix pdp-back-button clipped off-screen when content is widened ---
+   pdp-back-button ("back to subreddit" control on post pages, confirmed in
+   the reddit/post/ and reddit/post_with_media/ captures) is positioned by
+   Reddit via a container-query variant at `inset-inline-start: -2.5rem`
+   relative to its local container, floating leftward into the grid column
+   normally reserved for #left-sidebar-container. That's fine by default,
+   since the column's empty space absorbs it — but gr-rd-widen collapses
+   that column entirely (see above) and shifts #subgrid-container flush to
+   the reclaimed edge, so the same negative offset now pushes the button
+   partly past the actual content/viewport edge, clipping it. Give it a
+   small positive inset plus padding instead so it has clearance and stays
+   fully visible. */
+html.gr-reddit.gr-rd-widen pdp-back-button {
+  inset-inline-start: 0.5rem !important;
+  padding-inline-start: 0.25rem !important;
+}
+
 /* --- Compact feed: tighten post cards --- */
 html.gr-reddit.gr-rd-compact shreddit-post {
   padding-top: 4px !important;

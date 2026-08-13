@@ -95,6 +95,17 @@ features (themes, fonts, spacing) intended to work on any website over time.
   width instead of leaning right. This is independent of `gr-rd-noleft`
   (which only hides the sidebar element visually, it doesn't touch the
   grid track).
+- Widening also clipped the post page's `pdp-back-button` ("back to
+  subreddit" control, confirmed in the `reddit/post/` and `reddit/
+  post_with_media/` captures): Reddit positions it at `inset-inline-start:
+  -2.5rem` relative to its local container, floating leftward into the
+  (formerly reserved) left-sidebar grid column — fine normally, since that
+  column's empty space absorbs it, but `gr-rd-widen` collapses the column
+  and shifts `#subgrid-container` flush to the reclaimed edge, so the same
+  negative offset now pushes the button partly past the actual content
+  edge. Fixed by overriding `pdp-back-button`'s `inset-inline-start` to a
+  small positive value plus a touch of padding whenever `gr-rd-widen` is
+  active, so it keeps clear of the edge instead of clipping.
 
 ## Click-to-load media gotcha
 
