@@ -1,0 +1,215 @@
+/* =========================================================================
+   GoodReddit — Reddit (new / shreddit) tweaks
+   Gated behind .gr-reddit plus feature classes set by content.js.
+   Targets new Reddit markup (www/new/sh.reddit.com). Reddit changes its DOM
+   often — treat these as best-effort and update selectors as needed.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   THEME — recolor Reddit natively by overriding its RPL design tokens.
+   Each neutral/brand token is derived from the active GoodReddit theme via
+   color-mix(), so all 7 themes work. Applied to html and every element (*)
+   with !important so it beats Reddit's own token definitions.
+   ========================================================================= */
+html.gr-reddit,
+html.gr-reddit * {
+  /* surfaces */
+  --color-neutral-background: var(--gr-bg) !important;
+  --color-neutral-background-hover: color-mix(in srgb, var(--gr-bg), var(--gr-text) 6%) !important;
+  --color-neutral-background-selected: color-mix(in srgb, var(--gr-bg), var(--gr-text) 10%) !important;
+  --color-neutral-background-strong: color-mix(in srgb, var(--gr-bg), var(--gr-text) 9%) !important;
+  --color-neutral-background-weak: color-mix(in srgb, var(--gr-bg), var(--gr-text) 4%) !important;
+  /* text */
+  --color-neutral-content: var(--gr-text) !important;
+  --color-neutral-content-strong: var(--gr-text) !important;
+  --color-neutral-content-weak: color-mix(in srgb, var(--gr-text), var(--gr-bg) 35%) !important;
+  /* borders */
+  --color-neutral-border: color-mix(in srgb, var(--gr-text) 20%, var(--gr-bg)) !important;
+  --color-neutral-border-medium: color-mix(in srgb, var(--gr-text) 30%, var(--gr-bg)) !important;
+  --color-neutral-border-strong: color-mix(in srgb, var(--gr-text) 40%, var(--gr-bg)) !important;
+  --color-neutral-border-hover: color-mix(in srgb, var(--gr-text) 28%, var(--gr-bg)) !important;
+  /* links & primary buttons */
+  --color-brand-background: var(--gr-link) !important;
+  --color-brand-content: var(--gr-link) !important;
+  --color-action-primary-background: var(--gr-link) !important;
+  --color-action-primary-background-hover: color-mix(in srgb, var(--gr-link), #ffffff 15%) !important;
+  --color-action-primary-content: var(--gr-bg) !important;
+}
+
+/* --- Hide promoted posts & ads --- */
+html.gr-reddit.gr-rd-ads shreddit-post[promoted],
+html.gr-reddit.gr-rd-ads shreddit-post[promoted="true"],
+html.gr-reddit.gr-rd-ads [data-promoted="true"],
+html.gr-reddit.gr-rd-ads .promotedlink,
+html.gr-reddit.gr-rd-ads shreddit-comments-page-ad,
+html.gr-reddit.gr-rd-ads shreddit-comment-tree-ad,
+html.gr-reddit.gr-rd-ads shreddit-sidebar-ad {
+  display: none !important;
+}
+
+/* --- Right sidebar / community rail / popular communities ---
+   #right-sidebar-container / #right-sidebar-contents are confirmed against
+   the reddit/ capture (post/subreddit/frontpage). .right-rail-popular-
+   communities (the "Popular communities" box, confirmed on the frontpage
+   capture) is used instead of the old [aria-label="Popular Communities"] —
+   that aria-label is localized (e.g. "Suositut yhteisöt" in Finnish) so it
+   never matched non-English locales; the class name is stable across
+   locales. #subreddit-right-rail__partial is confirmed on the subreddit
+   capture. community-highlight-carousel and [slot="sidebar-contents"] were
+   not found in any of the three captures — removed as stale. */
+html.gr-reddit.gr-rd-noright #right-sidebar-container,
+html.gr-reddit.gr-rd-noright #right-sidebar-contents,
+html.gr-reddit.gr-rd-noright .right-rail-popular-communities,
+html.gr-reddit.gr-rd-noright #subreddit-right-rail__partial {
+  display: none !important;
+}
+
+/* --- Left sidebar — declutter / hide entirely --- */
+html.gr-reddit.gr-rd-noleft #left-sidebar-container {
+  display: none !important;
+}
+
+/* --- Trending searches & search overlay clutter ---
+   reddit-search-large is confirmed on all three captures (frontpage,
+   subreddit, post). #reddit-trending-searches-partial-container is likely
+   only rendered client-side when the search box is focused/interacted with,
+   so it still isn't present in any static capture — kept as best-effort. */
+html.gr-reddit.gr-rd-notrending #reddit-trending-searches-partial-container,
+html.gr-reddit.gr-rd-notrending reddit-search-large {
+  display: none !important;
+}
+
+/* --- Widen main content (best-effort) ---
+   Verified against the reddit/ capture: <main>/#main-content/.grid-container
+   don't actually carry a max-width — the real width constraints are
+   #subgrid-container's fixed `width` (w-[1120px]) and .main-container's
+   fixed-pixel grid-template-columns (grid-cols-[756px_316px]). Overriding
+   only max-width on the old selectors did nothing; override the real
+   constraints instead, keeping the max-width rules as a harmless fallback
+   for older/other Reddit layouts. */
+html.gr-reddit.gr-rd-widen #subgrid-container {
+  width: 100% !important;
+  max-width: none !important;
+}
+html.gr-reddit.gr-rd-widen .main-container {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 316px) !important;
+}
+/* When the right sidebar is also hidden, let the content column take the
+   full width instead of leaving its grid track reserved. */
+html.gr-reddit.gr-rd-widen.gr-rd-noright .main-container {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+/* .grid-container reserves a first grid column for #left-sidebar-container
+   (the desktop nav/promo rail), which is itself position:fixed — so it's
+   painted as a floating overlay but the empty grid track is still there,
+   pushing #subgrid-container (col-start-2) off-center to the right. Collapse
+   that column and let the content span the full grid so it's truly centered
+   in the reclaimed space, regardless of gr-rd-noleft. */
+html.gr-reddit.gr-rd-widen .grid-container {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+html.gr-reddit.gr-rd-widen #subgrid-container {
+  grid-column: 1 / -1 !important;
+}
+html.gr-reddit.gr-rd-widen main,
+html.gr-reddit.gr-rd-widen #main-content,
+html.gr-reddit.gr-rd-widen .grid-container {
+  max-width: none !important;
+}
+
+/* --- Compact feed: tighten post cards --- */
+html.gr-reddit.gr-rd-compact shreddit-post {
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+
+/* --- Click-to-load media (opt-in) ---
+   Verified against the reddit/post/ capture: the post's primary media
+   (image, gallery, video player) lives in <shreddit-post>'s
+   div[slot="post-media-container"]. Comment media is gated via
+   figure.rte-media (Reddit's rich-text embedded-media wrapper), confirmed
+   against the reddit/post_with_media/ capture, which contains many
+   comment-embedded images and shreddit-player-based gifs — that capture
+   also proved a plain "shreddit-comment img" selector was wrong: it also
+   matched user avatars and achievement-badge icons (both rendered as
+   <img> inside <shreddit-comment>), which the feature must NOT gate.
+   figure.rte-media reliably wraps only actual embedded media (img or
+   shreddit-player), not avatars/badges, and gating the whole <figure>
+   also avoids the fixed inline width/height some gif wrappers carry.
+   Rather than blurring media in place (which still reserves its original
+   width/height), content.js replaces each gated element with a compact
+   `.gr-media-placeholder` link and this CSS fully removes the original
+   element from layout until it's revealed (adds .gr-media-revealed). This
+   only gates the *view* — Reddit's custom media elements (shreddit-player,
+   gallery-carousel) still load/observe viewport intersection underneath. */
+html.gr-reddit.gr-rd-clicktoload div[slot="post-media-container"]:not(.gr-media-revealed),
+html.gr-reddit.gr-rd-clicktoload figure.rte-media:not(.gr-media-revealed) {
+  display: none !important;
+}
+
+.gr-media-placeholder {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin: 4px 0 !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  background: color-mix(in srgb, var(--gr-text, #1f2328) 8%, transparent) !important;
+  color: var(--gr-link, #0079d3) !important;
+  font: 600 13px/1.4 var(--gr-font, system-ui, sans-serif) !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+.gr-media-placeholder::before {
+  content: "\25B6" !important;
+  font-size: 11px !important;
+}
+.gr-media-placeholder:hover {
+  background: color-mix(in srgb, var(--gr-text, #1f2328) 14%, transparent) !important;
+}
+
+/* --- Hide top bar (opt-in) ---
+   Verified against the reddit/ capture: the sticky bar with the logo,
+   search box and register/login buttons is the <reddit-header-large>
+   custom element (position: fixed, top-0/start-0/end-0), so hiding it
+   doesn't leave a layout gap. Since this also hides search/login/hamburger
+   access, a tiny always-present tab (.gr-topbar-toggler, injected by
+   content.js) lets the user bring it back with one click without opening
+   the extension's settings; clicking it toggles .gr-rd-topbar-shown on
+   <html>. */
+html.gr-reddit.gr-rd-notopbar:not(.gr-rd-topbar-shown) reddit-header-large {
+  display: none !important;
+}
+
+.gr-topbar-toggler {
+  all: unset !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 2147483647 !important;
+  width: 48px !important;
+  height: 5px !important;
+  border-radius: 0 0 6px 6px !important;
+  background: rgba(120, 120, 120, 0.35) !important;
+  cursor: pointer !important;
+  transition: height 0.15s ease, background 0.15s ease !important;
+}
+.gr-topbar-toggler:hover,
+.gr-topbar-toggler:focus-visible {
+  height: 9px !important;
+  background: rgba(120, 120, 120, 0.75) !important;
+}
+html.gr-reddit.gr-rd-notopbar.gr-rd-topbar-shown .gr-topbar-toggler {
+  border-radius: 6px !important;
+}
+
+/* --- Comment readability --- */
+html.gr-reddit.gr-rd-comments shreddit-comment {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  line-height: var(--gr-line-height, 1.6) !important;
+}
+html.gr-reddit.gr-rd-comments shreddit-comment p {
+  max-width: var(--gr-text-width, 80ch) !important;
+}

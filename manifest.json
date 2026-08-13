@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "GoodReddit",
+  "version": "1.0.0",
+  "description": "Make Reddit (and any site) easier to read: declutter the feed & sidebars, hide promoted posts, comfortable themes and typography. Per-site or global.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "goodreadability@local.extension",
+      "strict_min_version": "115.0"
+    }
+  },
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  },
+  "action": {
+    "default_title": "GoodReddit (Alt+R)",
+    "default_popup": "popup/popup.html",
+    "default_icon": "icons/icon.svg"
+  },
+  "permissions": ["storage", "activeTab", "scripting", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "scripts": ["lib/shared.js", "background/background.js"]
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["lib/shared.js", "content/content.js"],
+      "css": ["content/content.css", "content/reddit.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "toggle-readability": {
+      "suggested_key": { "default": "Alt+R" },
+      "description": "Toggle GoodReddit on the current page"
+    }
+  }
+}

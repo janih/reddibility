@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GoodReddit — Options</title>
+  <link rel="stylesheet" href="options.css">
+  <script>
+    // Apply cached UI theme before first paint to avoid a flash.
+    (function () {
+      try {
+        var m = localStorage.getItem("gr_ui");
+        if (m !== "light" && m !== "dark") {
+          m = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-ui-theme", m);
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <main>
+    <header>
+      <img src="../icons/icon.svg" width="26" height="26" alt="">
+      <h1>GoodReddit</h1>
+    </header>
+
+    <p class="lead">
+      These are the <strong>default</strong> settings applied to every site.
+      You can override individual sites from the toolbar popup
+      (“This site only”).
+    </p>
+
+    <section class="card">
+      <h2>Appearance <span class="hint">this page &amp; toolbar panel</span></h2>
+      <div class="seg">
+        <button data-ui="auto">Auto</button>
+        <button data-ui="light">Light</button>
+        <button data-ui="dark">Dark</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Theme</h2>
+      <div class="themes">
+        <button class="theme" data-theme="light">Light</button>
+        <button class="theme" data-theme="sepia">Sepia</button>
+        <button class="theme" data-theme="dark">Dark</button>
+        <button class="theme" data-theme="highcontrast">High Contrast</button>
+        <button class="theme" data-theme="solarizedlight">Solarized Light</button>
+        <button class="theme" data-theme="solarizeddark">Solarized Dark</button>
+        <button class="theme" data-theme="nord">Nord</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Font</h2>
+      <select id="fontFamily">
+        <option value="sans">Sans (System)</option>
+        <option value="serif">Serif (Georgia)</option>
+        <option value="readable">Readable Sans</option>
+      </select>
+    </section>
+
+    <section class="card">
+      <h2>Typography</h2>
+      <div class="control"><label>Font size</label><span class="val" id="fontSize-val"></span><input type="range" id="fontSize"></div>
+      <div class="control"><label>Line height</label><span class="val" id="lineHeight-val"></span><input type="range" id="lineHeight"></div>
+      <div class="control"><label>Letter spacing</label><span class="val" id="letterSpacing-val"></span><input type="range" id="letterSpacing"></div>
+      <div class="control"><label>Word spacing</label><span class="val" id="wordSpacing-val"></span><input type="range" id="wordSpacing"></div>
+      <div class="control"><label>Text width</label><span class="val" id="textWidth-val"></span><input type="range" id="textWidth"></div>
+    </section>
+
+    <section class="card">
+      <h2>Extras</h2>
+      <label class="check">
+        <input type="checkbox" id="hideDistractions">
+        <span>Hide cookie banners &amp; newsletter popups</span>
+      </label>
+    </section>
+
+    <section class="card">
+      <h2>Reddit tweaks <span class="hint">applied on reddit.com</span></h2>
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="rd-enabled"><span>Clean up Reddit</span></label>
+        <label class="check"><input type="checkbox" data-rd="hideAds"><span>Hide promoted posts &amp; ads</span></label>
+        <label class="check"><input type="checkbox" data-rd="hideRightSidebar"><span>Hide right sidebar</span></label>
+        <label class="check"><input type="checkbox" data-rd="hideLeftClutter"><span>Declutter left sidebar</span></label>
+        <label class="check"><input type="checkbox" data-rd="hideTrending"><span>Hide trending searches</span></label>
+        <label class="check"><input type="checkbox" data-rd="widen"><span>Widen content</span></label>
+        <label class="check"><input type="checkbox" data-rd="compactFeed"><span>Compact feed</span></label>
+        <label class="check"><input type="checkbox" data-rd="cleanComments"><span>Better comment spacing</span></label>
+        <label class="check"><input type="checkbox" data-rd="clickToLoadMedia"><span>Click to show images &amp; videos</span></label>
+        <label class="check"><input type="checkbox" data-rd="hideTopBar"><span>Hide top bar (search / login)</span></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Per-site overrides</h2>
+      <ul id="domain-list" class="domain-list"></ul>
+    </section>
+
+    <div class="actions">
+      <button id="resetAll" class="danger">Reset everything</button>
+    </div>
+  </main>
+
+  <script src="../lib/shared.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

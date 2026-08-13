@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="popup.css">
+  <script>
+    // Apply cached UI theme before first paint to avoid a flash.
+    (function () {
+      try {
+        var m = localStorage.getItem("gr_ui");
+        if (m !== "light" && m !== "dark") {
+          m = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-ui-theme", m);
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <img src="../icons/icon.svg" width="20" height="20" alt="">
+      <h1>GoodReddit</h1>
+    </div>
+    <label class="switch" title="Enable / disable">
+      <input type="checkbox" id="enable">
+      <span class="knob"></span>
+    </label>
+  </header>
+
+  <div class="appear-row">
+    <span class="appear-label">Panel theme</span>
+    <div class="seg">
+      <button data-ui="auto">Auto</button>
+      <button data-ui="light">Light</button>
+      <button data-ui="dark">Dark</button>
+    </div>
+  </div>
+
+  <div class="scope-row">
+    <label class="check" title="Save changes only for this site">
+      <input type="checkbox" id="scope">
+      <span>This site only</span>
+    </label>
+    <span class="scope-label" id="scope-label">All sites</span>
+  </div>
+  <div class="domain">Site: <span id="domain-label">—</span></div>
+
+  <section class="group reddit-group">
+    <div class="group-title">Reddit tweaks <span class="hint">on reddit.com</span></div>
+    <label class="check"><input type="checkbox" id="rd-enabled"><span>Clean up Reddit</span></label>
+    <label class="check"><input type="checkbox" data-rd="hideAds"><span>Hide promoted posts &amp; ads</span></label>
+    <label class="check"><input type="checkbox" data-rd="hideRightSidebar"><span>Hide right sidebar</span></label>
+    <label class="check"><input type="checkbox" data-rd="hideLeftClutter"><span>Declutter left sidebar</span></label>
+    <label class="check"><input type="checkbox" data-rd="hideTrending"><span>Hide trending searches</span></label>
+    <label class="check"><input type="checkbox" data-rd="widen"><span>Widen content</span></label>
+    <label class="check"><input type="checkbox" data-rd="compactFeed"><span>Compact feed</span></label>
+    <label class="check"><input type="checkbox" data-rd="cleanComments"><span>Better comment spacing</span></label>
+    <label class="check"><input type="checkbox" data-rd="clickToLoadMedia"><span>Click to show images &amp; videos</span></label>
+    <label class="check"><input type="checkbox" data-rd="hideTopBar"><span>Hide top bar (search / login)</span></label>
+  </section>
+
+  <section class="group">
+    <div class="group-title">Theme</div>
+    <div class="themes">
+      <button class="theme" data-theme="light">Light</button>
+      <button class="theme" data-theme="sepia">Sepia</button>
+      <button class="theme" data-theme="dark">Dark</button>
+      <button class="theme" data-theme="highcontrast">Contrast</button>
+      <button class="theme" data-theme="solarizedlight">Sol. Light</button>
+      <button class="theme" data-theme="solarizeddark">Sol. Dark</button>
+      <button class="theme" data-theme="nord">Nord</button>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-title">Font</div>
+    <select id="fontFamily" class="full">
+      <option value="sans">Sans (System)</option>
+      <option value="serif">Serif (Georgia)</option>
+      <option value="readable">Readable Sans</option>
+    </select>
+  </section>
+
+  <section class="group">
+    <div class="group-title">Typography</div>
+    <div class="control">
+      <label>Font size</label>
+      <span class="val" id="fontSize-val"></span>
+      <input type="range" id="fontSize">
+    </div>
+    <div class="control">
+      <label>Line height</label>
+      <span class="val" id="lineHeight-val"></span>
+      <input type="range" id="lineHeight">
+    </div>
+    <div class="control">
+      <label>Letter spacing</label>
+      <span class="val" id="letterSpacing-val"></span>
+      <input type="range" id="letterSpacing">
+    </div>
+    <div class="control">
+      <label>Word spacing</label>
+      <span class="val" id="wordSpacing-val"></span>
+      <input type="range" id="wordSpacing">
+    </div>
+    <div class="control">
+      <label>Text width</label>
+      <span class="val" id="textWidth-val"></span>
+      <input type="range" id="textWidth">
+    </div>
+  </section>
+
+  <section class="group">
+    <label class="check">
+      <input type="checkbox" id="hideDistractions">
+      <span>Hide cookie banners &amp; newsletter popups</span>
+    </label>
+  </section>
+
+  <footer>
+    <button id="reset" class="link">Reset</button>
+    <button id="options" class="link">Options →</button>
+  </footer>
+
+  <script src="../lib/shared.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

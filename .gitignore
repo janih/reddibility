@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Firefox extension packaging output
+*.xpi
+*.zip
+web-ext-artifacts/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node (in case tooling is added later)
+node_modules/
+
+# Junie agent session artifacts (keep .junie/plans and guidelines tracked)
+.junie/cache/
+.junie/logs/
