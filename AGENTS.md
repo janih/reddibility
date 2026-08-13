@@ -266,6 +266,20 @@ features (themes, fonts, spacing) intended to work on any website over time.
   over the inherited value), plus a direct `background-color: var(--gr-bg)`
   fallback in case their internal styles don't consult `color-scheme` at
   all.
+- The fix above didn't actually help, because the selectors were wrong:
+  given the real inner HTML (supplied directly by the user, still not in
+  any `reddit/` capture), `rpl-vote-button-group` and `comments-action-
+  button` are **not** element tag names at all. `.rpl-vote-button-group` is
+  a *class* on a `<span rpl data-post-click-location="vote">` wrapping the
+  upvote/downvote `<button>`s, and `comments-action-button` is the `name`
+  attribute of the comments `<a data-action-bar-action="comments">` — so
+  `html.gr-reddit rpl-vote-button-group`/`comments-action-button` as tag
+  selectors never matched anything. `shreddit-post-share-button` genuinely
+  is a custom element tag, so that selector was already correct. Fixed by
+  switching to `.rpl-vote-button-group`, `.rpl-vote-button-group button`
+  (to also reach the individual upvote/downvote buttons inside),
+  `[data-action-bar-action="comments"]`, and `a[name="comments-action-
+  button"]`.
 
 ## Typography settings gotchas
 
