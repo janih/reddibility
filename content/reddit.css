@@ -100,15 +100,22 @@ html.gr-reddit.gr-rd-widen.gr-rd-noright .main-container {
   grid-template-columns: minmax(0, 1fr) !important;
 }
 /* .grid-container reserves a first grid column for #left-sidebar-container
-   (the desktop nav/promo rail), which is itself position:fixed — so it's
-   painted as a floating overlay but the empty grid track is still there,
-   pushing #subgrid-container (col-start-2) off-center to the right. Collapse
-   that column and let the content span the full grid so it's truly centered
-   in the reclaimed space, regardless of gr-rd-noleft. */
-html.gr-reddit.gr-rd-widen .grid-container {
+   (the desktop nav/promo rail) via `grid-template-columns: var(--flex-nav-
+   width) 1fr` (confirmed in the reddit/post/ capture's inlined Tailwind
+   stylesheet — --flex-nav-width is 272-315px). #left-sidebar-container
+   itself is position:fixed, so it's painted as a floating overlay on top
+   of whatever occupies that first column's screen space — meaning this
+   collapse is only safe when the sidebar is actually hidden (gr-rd-
+   noleft): collapsing the column while the sidebar is still visible just
+   lets the widened #subgrid-container slide underneath the fixed overlay
+   instead of stopping clear of it. So only collapse the column and let
+   content span the full grid when both gr-rd-widen and gr-rd-noleft are
+   active; otherwise leave the reserved first column in place so widened
+   content still starts to the right of the visible sidebar. */
+html.gr-reddit.gr-rd-widen.gr-rd-noleft .grid-container {
   grid-template-columns: minmax(0, 1fr) !important;
 }
-html.gr-reddit.gr-rd-widen #subgrid-container {
+html.gr-reddit.gr-rd-widen.gr-rd-noleft #subgrid-container {
   grid-column: 1 / -1 !important;
 }
 html.gr-reddit.gr-rd-widen main,

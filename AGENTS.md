@@ -130,6 +130,22 @@ features (themes, fonts, spacing) intended to work on any website over time.
   `gr-rd-widen` is active) roughly matching the back button's width plus
   clearance, so the credit-bar's own content shifts right and no longer
   overlaps it.
+- Widening also broke down when combined with a **visible** left sidebar
+  (i.e. `gr-rd-widen` active but `gr-rd-noleft` *not*): Reddit's real
+  `.grid-container:not(.grid-full)` rule (found in the `reddit/post/`
+  capture's inlined Tailwind stylesheet) reserves a genuine first grid
+  column via `grid-template-columns: var(--flex-nav-width) 1fr`
+  (`--flex-nav-width` is 272-315px), which is what `#left-sidebar-container`
+  — itself `position: fixed` — visually sits on top of. The earlier widen
+  fix collapsed `.grid-container` to a single `1fr` column and spanned
+  `#subgrid-container` across it *unconditionally*, so with the sidebar
+  still visible the widened content now started at the page edge and slid
+  underneath the fixed sidebar overlay instead of stopping clear of it.
+  Fixed by scoping that collapse/span pair to `gr-rd-widen.gr-rd-noleft`
+  only; when the sidebar stays visible, Reddit's own reserved column (and
+  its own `m:col-start-2` placement of `#subgrid-container`) is left
+  intact, so widened content still starts to the right of the sidebar
+  instead of overlapping it.
 
 ## Click-to-load media gotcha
 
