@@ -153,7 +153,7 @@ html.gr-reddit.gr-rd-widen pdp-back-button {
    the right by roughly the button's own width plus clearance so the
    credit-bar content never overlaps it. */
 html.gr-reddit.gr-rd-widen pdp-back-button + .avatar {
-  margin-inline-start: 2rem !important;
+  margin-inline-start: 4rem !important;
 }
 
 /* --- Compact feed: tighten post cards --- */
