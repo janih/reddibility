@@ -103,9 +103,22 @@ features (themes, fonts, spacing) intended to work on any website over time.
   column's empty space absorbs it, but `gr-rd-widen` collapses the column
   and shifts `#subgrid-container` flush to the reclaimed edge, so the same
   negative offset now pushes the button partly past the actual content
-  edge. Fixed by overriding `pdp-back-button`'s `inset-inline-start` to a
-  small positive value plus a touch of padding whenever `gr-rd-widen` is
-  active, so it keeps clear of the edge instead of clipping.
+  edge. First fix attempt just overrode `inset-inline-start` to a small
+  positive value, which stopped the clipping but exposed a second problem:
+  `pdp-back-button` only gets `position: absolute` (and its offsets) at all
+  via a plain Reddit `@media (min-width: 1472px)` rule inlined in the
+  page's own Tailwind stylesheet (verified by inspecting the captures'
+  inlined `<style id="tailwind">` — it's a fixed viewport breakpoint, not a
+  container query, so it's unrelated to our grid changes but just as
+  fragile). Below that breakpoint the button is a normal in-flow flex item
+  next to the credit-bar avatar instead, so the offset-only fix had no
+  effect there and the button could still end up rendered in the wrong
+  place relative to the post content. Fixed properly by forcing
+  `position: absolute` (plus `top`, the inset, and a `z-index`)
+  unconditionally on `pdp-back-button` whenever `gr-rd-widen` is active,
+  anchored to `#pdp-credit-bar` (the nearest `position: relative`
+  ancestor), so it always floats cleanly regardless of viewport width
+  instead of depending on Reddit's own breakpoint.
 
 ## Click-to-load media gotcha
 

@@ -117,21 +117,31 @@ html.gr-reddit.gr-rd-widen .grid-container {
   max-width: none !important;
 }
 
-/* --- Fix pdp-back-button clipped off-screen when content is widened ---
+/* --- Fix pdp-back-button clipped/misplaced when content is widened ---
    pdp-back-button ("back to subreddit" control on post pages, confirmed in
-   the reddit/post/ and reddit/post_with_media/ captures) is positioned by
-   Reddit via a container-query variant at `inset-inline-start: -2.5rem`
-   relative to its local container, floating leftward into the grid column
-   normally reserved for #left-sidebar-container. That's fine by default,
-   since the column's empty space absorbs it — but gr-rd-widen collapses
-   that column entirely (see above) and shifts #subgrid-container flush to
-   the reclaimed edge, so the same negative offset now pushes the button
-   partly past the actual content/viewport edge, clipping it. Give it a
-   small positive inset plus padding instead so it has clearance and stays
-   fully visible. */
+   the reddit/post/ and reddit/post_with_media/ captures) only gets pulled
+   out of the credit-bar's normal flex flow (position: absolute, floating
+   to the left) via a plain viewport `@media (min-width: 1472px)` rule of
+   Reddit's own (verified in the page's inlined Tailwind stylesheet — it's
+   a fixed breakpoint, not a container query, so it's unrelated to our grid
+   changes but still fragile: at the very common sub-1472px viewport widths
+   the button stays a normal in-flow flex item instead, sitting right next
+   to the credit-bar avatar). Depending on which of the two modes is active
+   for a given viewport, our old fix (which only nudged the offset used by
+   the *floating* mode) either worked or did nothing, so the button could
+   still end up rendered in the wrong place relative to the post content
+   (e.g. appearing to sit below/behind it) whenever the floating mode
+   wasn't engaged. Force absolute positioning unconditionally instead of
+   relying on Reddit's breakpoint, anchored to the credit bar (which is the
+   nearest `position: relative` ancestor) with a small positive inset and a
+   z-index so it always floats cleanly above the content, regardless of
+   viewport width. */
 html.gr-reddit.gr-rd-widen pdp-back-button {
+  position: absolute !important;
+  top: 1rem !important;
   inset-inline-start: 0.5rem !important;
   padding-inline-start: 0.25rem !important;
+  z-index: 3 !important;
 }
 
 /* --- Compact feed: tighten post cards --- */
