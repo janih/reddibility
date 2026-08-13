@@ -322,6 +322,22 @@ features (themes, fonts, spacing) intended to work on any website over time.
   without needing to duplicate their values in JS. The original
   `content/reddit.css` selectors are kept as a harmless fallback in case
   Reddit ever renders this markup in light DOM instead.
+- Even after the shadow-DOM-aware fix, the share button ("Jaa"/"Share")
+  stayed black — because `shreddit-post-share-button` renders its visible
+  `<button class="... button-secondary ...">` inside its **own separate,
+  nested shadow root**, distinct from the shadow root that hosts the vote/
+  comments action row. Styling only the `shreddit-post-share-button` host
+  tag (from the action row's shadow root) never reached that inner button
+  in its own nested tree. Confirmed via a devtools-copied snippet of just
+  that button (supplied directly by the user): it carries the same
+  `button-secondary` class already used by the vote/comment buttons.
+  Fixed by adding a generic `.button-secondary` selector (in both
+  `content/reddit.css` and the JS-injected `SHADOW_BTN_CSS` in
+  `content/content.js`) alongside the more specific selectors — since
+  `visitShadowRoot` recursively discovers and styles *every* shadow root
+  including nested ones, this reaches the share button's inner button too,
+  and is a harmless no-op on shadow roots/elements that don't have that
+  class.
 
 ## Typography settings gotchas
 

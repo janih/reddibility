@@ -63,13 +63,21 @@
   // inside it. CSS custom properties (--gr-bg/--gr-color-scheme) still
   // inherit across the shadow boundary normally, so the injected rule can
   // keep referencing them.
+  // shreddit-post-share-button renders its visible "Jaa"/"Share" button
+  // (a plain <button class="... button-secondary ...">) inside its OWN
+  // nested shadow root, separate from the host element — styling only the
+  // host tag (as before) never reached that inner button. `.button-
+  // secondary` is the same class shared by the vote/comment buttons, so a
+  // generic selector recolors that inner button wherever this style gets
+  // injected (harmless no-op on shadow roots that don't contain it).
   var SHADOW_BTN_STYLE_ID = "gr-shadow-btn-style";
   var SHADOW_BTN_CSS =
     ".rpl-vote-button-group," +
     ".rpl-vote-button-group button," +
     '[data-action-bar-action="comments"],' +
     'a[name="comments-action-button"],' +
-    "shreddit-post-share-button {" +
+    "shreddit-post-share-button," +
+    ".button-secondary {" +
     "color-scheme: var(--gr-color-scheme, light) !important;" +
     "background-color: var(--gr-bg) !important;" +
     "}";

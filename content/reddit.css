@@ -59,12 +59,21 @@ html.gr-reddit * {
    off for readers who'd rather keep Reddit's own colors on just these
    elements — e.g. its low-contrast logged-out look isn't wanted by
    everyone even though it was originally a Reddit-side bug we happened to
-   fix as a side effect. */
+   fix as a side effect.
+   The `shreddit-post-share-button` selector alone only colors the custom
+   element's own host box, not the visible black surface — that's the
+   plain <button class="... button-secondary ..."> Reddit renders *inside*
+   the element's own (separate, nested) shadow root, per the "Jaa" share
+   button markup supplied via devtools. Since `.button-secondary` is the
+   same class shared by the vote/comment buttons already fixed above, a
+   generic `.button-secondary` selector recolors that inner button too
+   (and is redundant-but-harmless on the elements already matched). */
 html.gr-reddit.gr-rd-forcebtncolors .rpl-vote-button-group,
 html.gr-reddit.gr-rd-forcebtncolors .rpl-vote-button-group button,
 html.gr-reddit.gr-rd-forcebtncolors [data-action-bar-action="comments"],
 html.gr-reddit.gr-rd-forcebtncolors a[name="comments-action-button"],
-html.gr-reddit.gr-rd-forcebtncolors shreddit-post-share-button {
+html.gr-reddit.gr-rd-forcebtncolors shreddit-post-share-button,
+html.gr-reddit.gr-rd-forcebtncolors .button-secondary {
   color-scheme: var(--gr-color-scheme, light) !important;
   background-color: var(--gr-bg) !important;
 }
