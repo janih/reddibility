@@ -162,6 +162,29 @@ features (themes, fonts, spacing) intended to work on any website over time.
   `.gr-rd-topbar-shown` when the setting is turned off or Reddit features are
   disabled entirely, so no stray toggler tab is left behind.
 
+## Minimize "Join" buttons
+
+- New setting `reddit.minimizeJoinButtons` (toggle: "Minimize \"Join\"
+  buttons", **on by default** — unlike the other recent opt-in additions,
+  this is a pure declutter tweak with no hidden-functionality tradeoff, so
+  it follows the same default-on pattern as `hideAds`/`hideRightSidebar`/
+  etc.) shrinks and fades the prominent per-post "Join" button in the feed.
+- Confirmed only on the `reddit/frontpage/` capture: each feed post's credit
+  bar (subreddit name + timestamp line) carries a `<shreddit-join-button
+  data-testid="credit-bar-join-button">`, since the front page aggregates
+  posts from many subreddits the reader may not have joined. Not present in
+  the `reddit/subreddit/` or `reddit/post/` captures — a single-subreddit
+  page already surfaces join/leave status elsewhere (e.g. the sidebar), so
+  there's no equivalent per-post button to minimize there.
+- Rather than fully hiding it (which would remove a real, sometimes-wanted
+  action), `content/reddit.css` gates it behind `gr-rd-minjoin` with a
+  shrink (`scale(0.82)`) + fade (`opacity: 0.35`) that reverts to full
+  size/opacity on `:hover`/`:focus-within`, so the button stays reachable
+  (including via keyboard) but no longer competes visually with post
+  content. No `content.js` changes were needed beyond toggling the class —
+  unlike the media/top-bar features, this one needs no injected DOM or
+  teardown logic.
+
 ## Typography settings gotchas
 
 - `--gr-font-size` is applied on `html.gr-active` (the root element), not

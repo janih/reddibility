@@ -28,6 +28,7 @@
     "gr-reddit", "gr-rd-ads", "gr-rd-noright", "gr-rd-noleft",
     "gr-rd-notrending", "gr-rd-widen", "gr-rd-compact", "gr-rd-comments",
     "gr-rd-clicktoload", "gr-rd-notopbar", "gr-rd-topbar-shown",
+    "gr-rd-minjoin",
   ];
 
   var TOPBAR_TOGGLER_ID = "gr-topbar-toggler";
@@ -155,6 +156,7 @@
     } else {
       teardownTopBarToggler();
     }
+    html.classList.toggle("gr-rd-minjoin", !!rd.minimizeJoinButtons);
   }
 
   function apply(settings) {

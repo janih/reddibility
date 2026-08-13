@@ -204,6 +204,29 @@ html.gr-reddit.gr-rd-notopbar.gr-rd-topbar-shown .gr-topbar-toggler {
   border-radius: 6px !important;
 }
 
+/* --- Minimize "Join" buttons on feed posts (opt-in, default on) ---
+   Confirmed on the reddit/frontpage/ capture: each feed post's credit bar
+   (subreddit name + timestamp) carries a <shreddit-join-button
+   data-testid="credit-bar-join-button">, since the frontpage aggregates
+   posts from many subreddits the reader may not have joined yet. Not
+   present on the subreddit/post captures (those pages already show the
+   user's relationship to the single subreddit elsewhere, e.g. the
+   sidebar). Shrunk + faded rather than fully hidden so joining is still
+   one click away, just far less visually prominent than post content;
+   full opacity/scale is restored on hover/focus so it's still discoverable
+   and usable via keyboard nav. */
+html.gr-reddit.gr-rd-minjoin shreddit-join-button[data-testid="credit-bar-join-button"] {
+  opacity: 0.35 !important;
+  transform: scale(0.82);
+  transform-origin: center;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+html.gr-reddit.gr-rd-minjoin shreddit-join-button[data-testid="credit-bar-join-button"]:hover,
+html.gr-reddit.gr-rd-minjoin shreddit-join-button[data-testid="credit-bar-join-button"]:focus-within {
+  opacity: 1 !important;
+  transform: scale(1);
+}
+
 /* --- Comment readability --- */
 html.gr-reddit.gr-rd-comments shreddit-comment {
   padding-top: 6px !important;

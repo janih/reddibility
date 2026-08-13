@@ -24,6 +24,9 @@ per-site.
 - **Hide top bar** — hides the sticky search/login/register bar (opt-in, off
   by default); a tiny tab pinned to the very top edge lets you bring it back
   with one click
+- **Minimize "Join" buttons** — shrinks and fades the per-post "Join" button
+  shown in the feed's subreddit credit bar (on by default); it's still one
+  click away, just far less prominent, and returns to full size on hover
 
 ### General readability (works everywhere)
 - **7 themes** — Light, Sepia, Dark, High Contrast, Solarized Light/Dark, Nord
