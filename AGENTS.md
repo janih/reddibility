@@ -119,6 +119,17 @@ features (themes, fonts, spacing) intended to work on any website over time.
   anchored to `#pdp-credit-bar` (the nearest `position: relative`
   ancestor), so it always floats cleanly regardless of viewport width
   instead of depending on Reddit's own breakpoint.
+- Making `pdp-back-button` float (above) left its normal flex-row slot
+  empty, so its very next sibling — the subreddit avatar (`<pdp-back-
+  button>` is immediately followed by `<span class="avatar ...">` inside
+  `#pdp-credit-bar`, confirmed in both the `reddit/post/` and `reddit/
+  post_with_media/` captures) and, by extension, the subreddit-name/
+  timestamp block after it — slid left to fill that gap and ended up
+  rendered underneath the now-floating button instead of beside it. Fixed
+  by giving that `.avatar` sibling a `margin-inline-start` (whenever
+  `gr-rd-widen` is active) roughly matching the back button's width plus
+  clearance, so the credit-bar's own content shifts right and no longer
+  overlaps it.
 
 ## Click-to-load media gotcha
 

@@ -143,6 +143,18 @@ html.gr-reddit.gr-rd-widen pdp-back-button {
   padding-inline-start: 0.25rem !important;
   z-index: 3 !important;
 }
+/* Pulling pdp-back-button out of flow (above) leaves its normal flex
+   position empty, so its sibling — the subreddit avatar (confirmed
+   immediately after it in the reddit/post/ and reddit/post_with_media/
+   captures: `<pdp-back-button>` then `<span class="avatar ...">`, both
+   inside the same `#pdp-credit-bar` flex row) — slides left to fill that
+   gap and ends up rendered underneath the now-floating button. Push it
+   (and everything after it in the row, since they're flex siblings) to
+   the right by roughly the button's own width plus clearance so the
+   credit-bar content never overlaps it. */
+html.gr-reddit.gr-rd-widen pdp-back-button + .avatar {
+  margin-inline-start: 2rem !important;
+}
 
 /* --- Compact feed: tighten post cards --- */
 html.gr-reddit.gr-rd-compact shreddit-post {
