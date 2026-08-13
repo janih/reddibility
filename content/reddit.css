@@ -36,6 +36,29 @@ html.gr-reddit * {
   --color-action-primary-content: var(--gr-bg) !important;
 }
 
+/* --- Vote button group / comment action bar / post share button ---
+   rpl-vote-button-group, comments-action-button and shreddit-post-share-
+   button aren't present in any current reddit/ capture (a newer Reddit UI
+   change not yet re-captured), but were reported always rendering with a
+   black background regardless of the selected GoodReddit theme. Unlike
+   most of Reddit's RPL surfaces (recolored above via the overridable
+   --color-* tokens), these shadow-DOM components likely resolve their
+   background via the CSS light-dark() function tied to the `color-scheme`
+   property, which normally tracks the OS/browser dark-mode preference
+   rather than Reddit's own tokens — explaining the "always black" bug
+   regardless of theme. content.js now sets an actual `color-scheme`
+   property (light/dark, matching each theme's `scheme`) on :root.gr-active,
+   which is a normal inherited property so it flows down into shadow trees
+   too; re-declaring it here (plus a direct background-color fallback) keeps
+   it pinned even if these components set their own :host { color-scheme }
+   internally instead of inheriting it. */
+html.gr-reddit rpl-vote-button-group,
+html.gr-reddit comments-action-button,
+html.gr-reddit shreddit-post-share-button {
+  color-scheme: var(--gr-color-scheme, light) !important;
+  background-color: var(--gr-bg) !important;
+}
+
 /* --- Hide promoted posts & ads --- */
 html.gr-reddit.gr-rd-ads shreddit-post[promoted],
 html.gr-reddit.gr-rd-ads shreddit-post[promoted="true"],

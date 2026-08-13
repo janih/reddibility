@@ -20,6 +20,8 @@
       "--gr-bg: " + theme.bg + ";" +
       "--gr-text: " + theme.text + ";" +
       "--gr-link: " + theme.link + ";" +
+      "--gr-color-scheme: " + (theme.scheme || "light") + ";" +
+      "color-scheme: " + (theme.scheme || "light") + ";" +
       "}"
     );
   }

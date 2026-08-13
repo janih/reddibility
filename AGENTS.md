@@ -236,6 +236,37 @@ features (themes, fonts, spacing) intended to work on any website over time.
   unlike the media/top-bar features, this one needs no injected DOM or
   teardown logic.
 
+## Vote button / comment action bar / share button always-black gotcha
+
+- `rpl-vote-button-group`, `comments-action-button`, and
+  `shreddit-post-share-button` aren't present in any current `reddit/`
+  capture (they're part of a newer Reddit UI change, not yet re-captured),
+  but were reported always rendering with a black background regardless of
+  the selected GoodReddit theme.
+- Unlike most Reddit RPL surfaces — recolored by the existing
+  `html.gr-reddit, html.gr-reddit *` block, which overrides Reddit's
+  overridable `--color-*` design tokens via `color-mix()` — these
+  components most likely resolve their background via the CSS
+  `light-dark()` function keyed off the `color-scheme` property, which by
+  default tracks the OS/browser dark-mode preference rather than Reddit's
+  own tokens. That would explain why the background stayed black
+  independent of the chosen theme/token overrides.
+- Each theme in `lib/shared.js` now carries a `scheme: "light" | "dark"`
+  field (light for Light/Sepia/Solarized Light, dark for Dark/High
+  Contrast/Solarized Dark/Nord). `content.js`'s `buildCSS` writes both a
+  `--gr-color-scheme` custom property and an actual `color-scheme:
+  <scheme>;` declaration into the `:root.gr-active` style block, so the
+  active theme's lightness is reflected in a real, inheritable CSS property
+  — not just a custom property Reddit's own code has no reason to read —
+  and it flows down into shadow trees the normal way (shadow hosts inherit
+  from their light-DOM ancestors).
+- `content/reddit.css` re-declares `color-scheme` (from `--gr-color-scheme`)
+  directly on the three components as a safety net, in case their shadow
+  root sets its own `color-scheme` on `:host` (which would otherwise win
+  over the inherited value), plus a direct `background-color: var(--gr-bg)`
+  fallback in case their internal styles don't consult `color-scheme` at
+  all.
+
 ## Typography settings gotchas
 
 - `--gr-font-size` is applied on `html.gr-active` (the root element), not
