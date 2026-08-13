@@ -294,11 +294,44 @@
     });
   }
 
-  browser.runtime.onMessage.addListener(function (msg) {
-    if (msg && msg.type === "apply") {
-      apply(msg.settings);
-    }
-  });
+  // Guarded so this file can be `require()`d under Node (e.g. by tests)
+  // without touching the real `browser` extension API or auto-running
+  // against a bare jsdom document; in the actual extension `browser` is
+  // always defined, so this is a no-op behavior change there.
+  if (typeof browser !== "undefined" && browser.runtime && browser.runtime.onMessage) {
+    browser.runtime.onMessage.addListener(function (msg) {
+      if (msg && msg.type === "apply") {
+        apply(msg.settings);
+      }
+    });
 
-  init();
+    init();
+  }
+
+  // Expose internals for Node-based tests (e.g. Vitest); no-op in the
+  // browser since `module` is never defined there.
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+      buildCSS: buildCSS,
+      applyReddit: applyReddit,
+      apply: apply,
+      init: init,
+      isReddit: isReddit,
+      RD_CLASSES: RD_CLASSES,
+      MEDIA_GATE_SELECTOR: MEDIA_GATE_SELECTOR,
+      SHADOW_BTN_CSS: SHADOW_BTN_CSS,
+      ensureMediaPlaceholder: ensureMediaPlaceholder,
+      scanForGatedMedia: scanForGatedMedia,
+      startMediaObserver: startMediaObserver,
+      teardownMediaPlaceholders: teardownMediaPlaceholders,
+      ensureTopBarToggler: ensureTopBarToggler,
+      teardownTopBarToggler: teardownTopBarToggler,
+      visitShadowRoot: visitShadowRoot,
+      scanForShadowRoots: scanForShadowRoots,
+      startShadowRootScan: startShadowRootScan,
+      setForceButtonColors: setForceButtonColors,
+      injectShadowButtonStyle: injectShadowButtonStyle,
+      removeShadowButtonStyle: removeShadowButtonStyle,
+    };
+  }
 })();

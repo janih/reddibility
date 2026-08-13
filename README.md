@@ -113,3 +113,29 @@ Open the `.html` file in a browser or grep it to confirm real class/id/tag
 names instead of guessing.
 If a capture looks outdated, save a fresh one to replace it (see `AGENTS.md`
 for details).
+
+## Automated tests
+
+There's no build step for the extension itself, but there is now an
+automated test suite (Vitest + jsdom) that catches regressions in the
+non-visual logic:
+
+```bash
+npm install
+npm test
+```
+
+- `test/shared.test.js` — unit tests for `lib/shared.js` (settings
+  defaults/merging, value formatting, theme table, storage load/save).
+- `test/content.test.js` — DOM tests for `content/content.js` (feature-class
+  toggling, click-to-load media placeholders, shadow-DOM button theming).
+- `test/reddit-selectors.test.js` — loads the real `reddit/**/*.html`
+  captures and checks the selectors `content/reddit.css` relies on still
+  match, to catch Reddit redesigns breaking a rule silently.
+
+`lib/shared.js` and `content/content.js` stay plain scripts for the
+extension itself (no bundler); each just gets an extra `module.exports`
+guard at the bottom so they can also be `require()`d directly under Node
+for testing — a no-op in the real browser. Manual verification on
+`reddit.com` is still recommended for anything visual/layout-related, since
+the suite doesn't render real CSS or interact with a live page.

@@ -380,11 +380,80 @@ features (themes, fonts, spacing) intended to work on any website over time.
 
 ## Verifying changes
 
-- No build step: load `manifest.json` via
+- No build step for the extension itself: load `manifest.json` via
   `about:debugging#/runtime/this-firefox` → "Load Temporary Add-on…" in
   Firefox, then reload the extension after edits.
-- There is no automated test suite; verify manually on `reddit.com` (and a
-  couple of generic sites for the non-Reddit readability features).
+- There's still no automated way to verify visual behavior; manually check
+  `reddit.com` (and a couple of generic sites for the non-Reddit
+  readability features) after any change that affects layout/appearance.
+- There **is** now an automated test suite (`npm test`, via Vitest +
+  jsdom — see `package.json`/`vitest.config.js`) covering everything that's
+  practical to test without a real browser: run it after any change to
+  `lib/shared.js` or `content/content.js`, and add/update tests alongside
+  those changes. See "Automated tests" below for what's covered and how to
+  extend it.
+
+## Automated tests
+
+- `npm install` once, then `npm test` runs the full suite (Vitest, jsdom
+  environment) under `test/`. There's no CI wired up yet — this is a local,
+  on-demand suite.
+- `lib/shared.js` and `content/content.js` are plain (non-ESM) scripts,
+  written for direct `<script>` inclusion in the extension (see
+  `manifest.json`'s `content_scripts`). Each now ends with a
+  `if (typeof module !== "undefined" && module.exports) { module.exports =
+  ...; }` guard so Node/Vitest can `require()` them directly (exposing `GR`
+  and, for `content.js`, its internal functions for testing) — this is a
+  no-op in the real browser context, where `module` is never defined.
+  Similarly, `content.js`'s real auto-init call (`browser.runtime.
+  onMessage.addListener(...)` + `init()`) is now guarded behind `typeof
+  browser !== "undefined"`, so requiring the file under Node never touches
+  the real `browser` extension API or tries to auto-run against a bare
+  jsdom document unless a test explicitly stubs `global.browser`.
+- `test/shared.test.js` — unit tests for `lib/shared.js`'s pure(ish)
+  functions: `getDomain`, `emptyState`, `effective` (including per-domain
+  override merging), `formatValue`, `ensureReddit`, `resolveUiMode`, the
+  `THEMES` table's `scheme` field, and `load`/`save` (with `browser.
+  storage.local` stubbed via `vi.fn()`). Several of these functions are
+  exactly where this project has previously introduced subtle regressions
+  (e.g. per-domain merge behavior, theme `scheme` defaults).
+- `test/content.test.js` — DOM tests (via Vitest's jsdom environment) for
+  `content/content.js`: `buildCSS`'s generated custom properties, `is
+  Reddit`, `applyReddit`'s `gr-rd-*` class toggling for every `reddit.*`
+  setting (including the enabled/disabled and non-Reddit-domain no-op
+  cases), the click-to-load media placeholder lifecycle (`ensureMedia
+  Placeholder`/`scanForGatedMedia`/`teardownMediaPlaceholders`, including
+  the figure.rte-media-vs-avatar distinction), and the shadow-DOM button
+  theming (`visitShadowRoot`/`setForceButtonColors`, including nested
+  shadow roots like the share button's own). Each test calls a small
+  `loadContentModule()` helper that stubs `global.GR`/`global.location` and
+  evicts `content.js` from Node's own `require.cache` (NOT the same cache
+  Vitest's `vi.resetModules()` manages, since this file is loaded via
+  `require()` rather than `import`) so every test starts from clean
+  module-level state (`shadowRootsSeen`, `forceButtonColorsEnabled`, etc.).
+- `test/reddit-selectors.test.js` — regression tests that load the real
+  `reddit/**/*.html` captures (see "Working with the `reddit/` reference
+  captures" above) into jsdom and assert that the selectors `content/
+  reddit.css`/`content.js` rely on (`.right-rail-popular-communities`,
+  `#subreddit-right-rail__partial`, `pdp-back-button` + its avatar sibling,
+  `reddit-header-large`, `figure.rte-media`, the per-post join button,
+  etc.) still match real elements — this directly guards against the
+  "selector silently stopped matching after a Reddit redesign" failure mode
+  that has bitten this project repeatedly. Two jsdom gotchas worth knowing
+  if you touch this file: (1) each `JSDOM(html, ...)` call needs an
+  explicit `url` option (a real URL, not the default `about:blank`) —
+  without it, jsdom's default opaque origin can make later, unrelated
+  `localStorage` access throw `SecurityError: localStorage is not
+  available for opaque origins`, surfacing as a confusing failure in a
+  *different* test; (2) a `VirtualConsole` with silenced `error`/`warn`
+  handlers is used to suppress harmless "Could not parse CSS stylesheet"
+  noise from jsdom trying (and failing) to parse Reddit's inlined Tailwind
+  `<style>` blocks, which use arbitrary-value class names jsdom's CSS
+  parser chokes on. Also note: a `<shreddit-comment>` element itself
+  carries an `avatar="<url>"` attribute (the profile picture URL) — a bare
+  `[avatar]` selector matches every comment as an ancestor, so tests that
+  care about the actual avatar-*icon* wrapper must use the more specific
+  `span[avatar]` instead.
   
 ## Workflow
 
