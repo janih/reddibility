@@ -338,6 +338,18 @@ features (themes, fonts, spacing) intended to work on any website over time.
   including nested ones, this reaches the share button's inner button too,
   and is a harmless no-op on shadow roots/elements that don't have that
   class.
+- Follow-up report: in Light/Sepia the buttons rendered white text on a
+  near-white background. Root cause: the rule only ever forced
+  `background-color: var(--gr-bg)`, never a matching `color`, so Reddit's
+  own (light-theme-oriented) button text stayed white/illegible once the
+  background was pinned to the theme's near-white `--gr-bg`. Fixed (in
+  both `content/reddit.css` and the JS-injected `SHADOW_BTN_CSS` in
+  `content/content.js`) by also forcing `color: var(--gr-text)`, and by
+  mixing a bit of `--gr-text` into the background via
+  `color-mix(in srgb, var(--gr-text) 12%, var(--gr-bg))` — the same
+  color-mix() pattern already used for the RPL surface tokens above — so
+  the button reads as a slightly darker, distinct surface rather than
+  blending into the page background.
 
 ## Typography settings gotchas
 

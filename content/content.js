@@ -79,7 +79,8 @@
     "shreddit-post-share-button," +
     ".button-secondary {" +
     "color-scheme: var(--gr-color-scheme, light) !important;" +
-    "background-color: var(--gr-bg) !important;" +
+    "background-color: color-mix(in srgb, var(--gr-text) 12%, var(--gr-bg)) !important;" +
+    "color: var(--gr-text) !important;" +
     "}";
   var forceButtonColorsEnabled = false;
   var shadowRootsSeen = new Set();

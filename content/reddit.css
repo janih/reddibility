@@ -67,7 +67,14 @@ html.gr-reddit * {
    button markup supplied via devtools. Since `.button-secondary` is the
    same class shared by the vote/comment buttons already fixed above, a
    generic `.button-secondary` selector recolors that inner button too
-   (and is redundant-but-harmless on the elements already matched). */
+   (and is redundant-but-harmless on the elements already matched).
+   Reported follow-up: in Light/Sepia the button rendered white-on-white —
+   only `background-color` was forced, never `color`, so the buttons' own
+   (white) text stayed illegible against the now-near-white background.
+   Fixed by also forcing `color: var(--gr-text)`, and by mixing a bit of
+   `--gr-text` into the background (same color-mix() pattern used for the
+   surface tokens above) so the button reads as a slightly darker,
+   distinct surface instead of blending into the page background. */
 html.gr-reddit.gr-rd-forcebtncolors .rpl-vote-button-group,
 html.gr-reddit.gr-rd-forcebtncolors .rpl-vote-button-group button,
 html.gr-reddit.gr-rd-forcebtncolors [data-action-bar-action="comments"],
@@ -75,7 +82,8 @@ html.gr-reddit.gr-rd-forcebtncolors a[name="comments-action-button"],
 html.gr-reddit.gr-rd-forcebtncolors shreddit-post-share-button,
 html.gr-reddit.gr-rd-forcebtncolors .button-secondary {
   color-scheme: var(--gr-color-scheme, light) !important;
-  background-color: var(--gr-bg) !important;
+  background-color: color-mix(in srgb, var(--gr-text) 12%, var(--gr-bg)) !important;
+  color: var(--gr-text) !important;
 }
 
 /* --- Hide promoted posts & ads --- */
