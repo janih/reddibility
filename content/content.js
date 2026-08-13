@@ -51,6 +51,102 @@
 
   var mediaObserver = null;
 
+  // --- Vote/comment/share action-bar theming (pierces shadow DOM) ---
+  // The devtools-copied markup for this action row contains literal <slot>
+  // elements, which only ever exist inside a shadow root — proving the
+  // vote-button group, comments link and share button are rendered inside
+  // an open shadow root (not present at all in any static reddit/ capture,
+  // which only serializes light DOM). Plain document-level CSS selectors
+  // (see reddit.css) can never match shadow-encapsulated elements, so the
+  // fix has to walk into every shadow root (recursively, since Reddit's
+  // web components can nest them) and inject a small <style> directly
+  // inside it. CSS custom properties (--gr-bg/--gr-color-scheme) still
+  // inherit across the shadow boundary normally, so the injected rule can
+  // keep referencing them.
+  var SHADOW_BTN_STYLE_ID = "gr-shadow-btn-style";
+  var SHADOW_BTN_CSS =
+    ".rpl-vote-button-group," +
+    ".rpl-vote-button-group button," +
+    '[data-action-bar-action="comments"],' +
+    'a[name="comments-action-button"],' +
+    "shreddit-post-share-button {" +
+    "color-scheme: var(--gr-color-scheme, light) !important;" +
+    "background-color: var(--gr-bg) !important;" +
+    "}";
+  var forceButtonColorsEnabled = false;
+  var shadowRootsSeen = new Set();
+  var shadowScanStarted = false;
+
+  function injectShadowButtonStyle(root) {
+    if (!root || root.getElementById(SHADOW_BTN_STYLE_ID)) return;
+    var style = document.createElement("style");
+    style.id = SHADOW_BTN_STYLE_ID;
+    style.textContent = SHADOW_BTN_CSS;
+    root.appendChild(style);
+  }
+
+  function removeShadowButtonStyle(root) {
+    var style = root && root.getElementById && root.getElementById(SHADOW_BTN_STYLE_ID);
+    if (style) style.remove();
+  }
+
+  // Recursively discover shadow roots under `root` (document or another
+  // shadow root) and start tracking/watching each newly found one.
+  function scanForShadowRoots(root) {
+    if (!root || !root.querySelectorAll) return;
+    root.querySelectorAll("*").forEach(function (el) {
+      if (el.shadowRoot) visitShadowRoot(el.shadowRoot);
+    });
+  }
+
+  // Register a shadow root once: style it (if enabled), scan it for nested
+  // shadow roots, and watch it for future additions (Reddit lazily renders
+  // more posts/comments as the user scrolls).
+  function visitShadowRoot(sr) {
+    if (shadowRootsSeen.has(sr)) return;
+    shadowRootsSeen.add(sr);
+    if (forceButtonColorsEnabled) injectShadowButtonStyle(sr);
+    scanForShadowRoots(sr);
+    var obs = new MutationObserver(function (mutations) {
+      mutations.forEach(function (m) {
+        m.addedNodes.forEach(function (node) {
+          if (node.nodeType !== 1) return;
+          if (node.shadowRoot) visitShadowRoot(node.shadowRoot);
+          scanForShadowRoots(node);
+        });
+      });
+    });
+    obs.observe(sr, { childList: true, subtree: true });
+  }
+
+  // Start (once) scanning the whole document for shadow roots, plus a
+  // top-level observer to catch new shadow hosts as Reddit's SPA renders
+  // more content.
+  function startShadowRootScan() {
+    scanForShadowRoots(document);
+    if (shadowScanStarted) return;
+    shadowScanStarted = true;
+    var obs = new MutationObserver(function (mutations) {
+      mutations.forEach(function (m) {
+        m.addedNodes.forEach(function (node) {
+          if (node.nodeType !== 1) return;
+          if (node.shadowRoot) visitShadowRoot(node.shadowRoot);
+          scanForShadowRoots(node);
+        });
+      });
+    });
+    obs.observe(document.documentElement, { childList: true, subtree: true });
+  }
+
+  function setForceButtonColors(enabled) {
+    forceButtonColorsEnabled = !!enabled;
+    if (forceButtonColorsEnabled) startShadowRootScan();
+    shadowRootsSeen.forEach(function (sr) {
+      if (forceButtonColorsEnabled) injectShadowButtonStyle(sr);
+      else removeShadowButtonStyle(sr);
+    });
+  }
+
   function isReddit() {
     return /(^|\.)reddit\.com$/.test(location.hostname || "");
   }
@@ -135,6 +231,7 @@
       RD_CLASSES.forEach(function (c) { html.classList.remove(c); });
       teardownMediaPlaceholders();
       teardownTopBarToggler();
+      setForceButtonColors(false);
       return;
     }
     html.classList.add("gr-reddit");
@@ -160,6 +257,7 @@
     }
     html.classList.toggle("gr-rd-minjoin", !!rd.minimizeJoinButtons);
     html.classList.toggle("gr-rd-forcebtncolors", rd.forceButtonColors !== false);
+    setForceButtonColors(rd.forceButtonColors !== false);
   }
 
   function apply(settings) {

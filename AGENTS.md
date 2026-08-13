@@ -291,6 +291,37 @@ features (themes, fonts, spacing) intended to work on any website over time.
   share buttons" setting off (in `popup/` or `options/`) restores Reddit's
   own colors on just those three components without affecting any other
   theming.
+- Even with the corrected selectors, the setting still had no visible
+  effect — because the fix so far only lived in `content/reddit.css`, a
+  stylesheet injected into the main document, and **CSS selectors cannot
+  cross shadow DOM boundaries**. A fresh devtools-copied snippet of the
+  action row (supplied directly by the user) contains literal `<slot>`
+  elements (e.g. `<slot name="share-button"> <shreddit-post-share-button
+  ...> </slot>`) — `<slot>` only ever exists inside a shadow root template,
+  which proves this entire vote/comment/share action row is rendered
+  inside an **open shadow root** (most likely owned by `shreddit-post` or
+  a similar wrapper custom element). That's also why none of this markup
+  ever shows up in any static `reddit/` capture: Firefox's "Save Page As"
+  only serializes light DOM, never the contents of a JS-attached shadow
+  root.
+- Fixed by adding shadow-DOM-aware JS in `content/content.js` instead of
+  relying on document-level CSS alone: `visitShadowRoot`/
+  `scanForShadowRoots`/`startShadowRootScan` recursively discover every
+  shadow root on the page (including nested ones), inject a `<style
+  id="gr-shadow-btn-style">` directly inside each one with the same
+  vote/comments/share selectors and `color-scheme`/`background-color`
+  rules, and watch (via per-shadow-root `MutationObserver`s, plus a
+  top-level one on `document.documentElement`) for shadow roots attached
+  later as Reddit's SPA renders more posts/comments while scrolling.
+  `setForceButtonColors(enabled)` ties this into the existing
+  `gr-rd-forcebtncolors` toggle: turning the setting off removes the
+  injected `<style>` from every previously-seen shadow root instead of
+  just leaving stale (or absent) CSS in place. CSS custom properties
+  (`--gr-bg`, `--gr-color-scheme`) still inherit across the shadow
+  boundary normally, so the injected rule can keep referencing them
+  without needing to duplicate their values in JS. The original
+  `content/reddit.css` selectors are kept as a harmless fallback in case
+  Reddit ever renders this markup in light DOM instead.
 
 ## Typography settings gotchas
 
