@@ -416,6 +416,45 @@ would churn every CSS selector and test for no user-visible benefit.
   the button reads as a slightly darker, distinct surface rather than
   blending into the page background.
 
+## Site access permissions model (opt-in non-Reddit hosts)
+
+- The extension's required install-time permissions are deliberately
+  minimal: `storage`, `tabs`, `scripting`, and host access to
+  `*://*.reddit.com/*` only. Broad host access (`<all_urls>`) is declared
+  under `optional_host_permissions` instead of `host_permissions`, so the
+  install prompt only mentions Reddit, and AMO review risk stays low.
+- The static content script (manifest.json) therefore only matches
+  reddit.com. Non-Reddit sites get the content script **dynamically**:
+  when the user flips the popup's enable switch on a site without access,
+  `GR.ensureSiteAccess(domain)` (lib/shared.js) requests the origin
+  permission — `permissions.request` must run inside a user gesture in an
+  extension page, which is why the popup (not the background) owns this —
+  and on grant registers a per-site content script via
+  `scripting.registerContentScripts` (id `gr-site-<domain>`, same
+  js/css/runAt as the static Reddit entry, `persistAcrossSessions: true`).
+- Both origin pattern forms (`*://domain/*` and `*://*.domain/*`) are
+  requested/matched/checked everywhere because engines differ on whether
+  `*.example.com` covers the bare host; `GR.hasSiteAccess` probes them
+  individually since `permissions.contains` requires ALL listed origins.
+- Firefox keeps running a dynamically registered script after its
+  permission is revoked (bug 1772698), so revocation MUST be answered with
+  an explicit unregister: `GR.reconcileSiteScripts()` (background, on
+  `permissions.onAdded`/`onRemoved` and at startup) makes the registered
+  set match the granted non-Reddit origins, registering missing and
+  unregistering stale scripts. `GR.revokeSiteAccess` (options page's
+  per-site "Remove" and "Reset everything") removes the optional origin
+  permission and reconciles.
+- Alt+R on a non-Reddit site without access just saves the setting; the
+  background best-effort calls `browser.action.openPopup()` so the user
+  can grant access from the popup (the background can't `permissions.
+  request` directly — no user-gesture context).
+- `optional_host_permissions` requires Firefox 128+ — that's why
+  `strict_min_version` is `128.0` (also the reason `activeTab` was dropped:
+  redundant with `tabs` + host permissions, pure permission hygiene).
+- The popup shows a hint row (`#site-perm-hint`) when the current site is
+  non-Reddit and has no access yet, so the permission prompt isn't a
+  surprise.
+
 ## Settings copy/merge + tab-delivery gotchas
 
 - `Object.assign` is shallow. Copying settings with it (`emptyState`,
@@ -494,6 +533,9 @@ would churn every CSS selector and test for no user-visible benefit.
 - There's still no automated way to verify visual behavior; manually check
   `reddit.com` (and a couple of generic sites for the non-Reddit
   readability features) after any change that affects layout/appearance.
+  Note the opt-in model when testing non-Reddit sites: enabling from the
+  popup triggers Firefox's site-permission prompt once per site (see
+  "Site access permissions model" above).
 - There **is** now an automated test suite (`npm test`, via Vitest +
   jsdom — see `package.json`/`vitest.config.js`) covering everything that's
   practical to test without a real browser: run it after any change to

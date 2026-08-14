@@ -35,7 +35,7 @@ per-site.
 - **Hide avatars** — replaces post/comment author headshots with a blank,
   neutral circle placeholder of the same size (opt-in, off by default)
 
-### General readability (works everywhere)
+### General readability (works on any site)
 - **7 themes** — Light, Sepia, Dark, High Contrast, Solarized Light/Dark, Nord
 - **Typography** — font family, font size, line height, letter & word spacing,
   and a max text width
@@ -44,6 +44,15 @@ per-site.
 - **Badge indicator** — shows `ON` on the toolbar icon when active
 - **Optional clutter hiding** — hides common cookie banners & newsletter popups
 - **Panel theme** — force the toolbar panel & options page to light/dark, or follow your system (Auto)
+
+### Privacy-friendly site access
+
+Reddit access ships with the install (that's the headline use case). Every
+other site is **opt-in**: the first time you flip Reddibility on while on a
+site, Firefox asks for permission to run there — nothing is requested up
+front, and you can revoke any granted site in the add-on's settings or via
+the options page's per-site list. Reddibility collects no data and talks to
+no servers.
 
 ## Install (temporary, for development)
 
@@ -72,7 +81,8 @@ zip -r -FS reddibility.xpi manifest.json lib background content popup options ic
 1. Go to `reddit.com` and click the toolbar icon.
 2. Flip the master switch **on** — by default this affects **only the current
    site**, so Reddit gets cleaned up (ads gone, sidebars hidden, content
-   widened) without changing other sites.
+   widened) without changing other sites. On a non-Reddit site, Firefox
+   asks once for permission to run there.
 3. Fine-tune via the **Reddit tweaks** checkboxes, and pick a theme/typography.
 4. Uncheck **This site only** to apply your changes to *all* sites instead.
 5. Press `Alt+R` to toggle the current site quickly.
