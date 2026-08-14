@@ -262,11 +262,32 @@ features (themes, fonts, spacing) intended to work on any website over time.
   it's given a neutral `background-color` (mixed from the active theme's
   `--gr-text`/`--gr-bg`, same `color-mix()` pattern used elsewhere) so it
   reads as an intentional blank placeholder circle rather than an empty
-  gap or invisible hole.
+   gap or invisible hole.
 - No `content.js` DOM injection or teardown logic was needed beyond adding
   `gr-rd-noavatars` to `RD_CLASSES` and toggling it from
   `rd.hideAvatars` in `applyReddit` — this is a pure CSS gate, unlike the
   media/top-bar features.
+- Follow-up report: some hidden avatars kept a colorful gradient background
+  instead of the flat neutral placeholder. Root cause: "snoovatar" avatars
+  wrap their `<svg>` in a nested span carrying Tailwind's
+  `bg-[image:var(--color-avatar-gradient)]` class — a real `background-
+  image` independent of the already-hidden `img`/`svg`. Fixed by forcing
+  `background-image: none`/`background-color: transparent` on every
+  descendant of `span[avatar]`, so only the single `color-mix()` background
+  on the outer wrapper remains visible for every avatar type.
+- Follow-up report: the subreddit icon image (confirmed against the
+  `reddit/subreddit/` capture: `<span rpl avatar="" id="subreddit-icon-img">`
+  /`id="subreddit-icon-img-desktop">`, wrapping an inner
+  `img.shreddit-subreddit-icon__icon`) was rendering underneath/overlapping
+  the subreddit name whenever "Hide avatars" was enabled. Root cause: the
+  subreddit icon wrapper *also* carries the same `avatar=""` attribute used
+  by real post/comment author avatars, so the bare `span[avatar]` selector
+  matched it too, hiding its `img` and painting the neutral placeholder
+  circle over it. Fixed by scoping all three `gr-rd-noavatars` rules to
+  `span[avatar]:not([id^="subreddit-icon-img"])`, which covers both the
+  mobile (`subreddit-icon-img`) and desktop (`subreddit-icon-img-desktop`)
+  variants and leaves the subreddit icon fully visible while still hiding
+  real author avatars.
 
 ## Vote button / comment action bar / share button always-black gotcha
 

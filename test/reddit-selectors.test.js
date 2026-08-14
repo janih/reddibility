@@ -107,6 +107,19 @@ describe("reddit/subreddit/ capture selectors", () => {
       doc.querySelectorAll('shreddit-join-button[data-testid="credit-bar-join-button"]').length
     ).toBe(0);
   });
+
+  it("subreddit icon spans also carry [avatar] but are excluded by the hide-avatars gate", () => {
+    // Regression guard: the subreddit icon wrapper (`#subreddit-icon-img` /
+    // `#subreddit-icon-img-desktop`) also carries the `avatar=""` attribute,
+    // so a bare `span[avatar]` selector used by gr-rd-noavatars incorrectly
+    // matched it too, covering the subreddit icon with the blank avatar
+    // placeholder. The fix excludes `[id^="subreddit-icon-img"]`.
+    const icons = doc.querySelectorAll('span[avatar][id^="subreddit-icon-img"]');
+    expect(icons.length).toBeGreaterThan(0);
+    icons.forEach((icon) => {
+      expect(icon.matches('span[avatar]:not([id^="subreddit-icon-img"])')).toBe(false);
+    });
+  });
 });
 
 describe("reddit/post/ capture selectors", () => {
