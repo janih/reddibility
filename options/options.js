@@ -1,4 +1,4 @@
-/* GoodReddit options controller — edits the global default profile
+/* Reddibility options controller — edits the global default profile
    and manages per-site overrides. */
 document.addEventListener("DOMContentLoaded", init);
 
@@ -50,7 +50,7 @@ async function init() {
     });
   });
   document.getElementById("resetAll").addEventListener("click", async function () {
-    if (!confirm("Reset all GoodReddit settings, including per-site overrides?")) return;
+    if (!confirm("Reset all Reddibility settings, including per-site overrides?")) return;
     state = GR.emptyState();
     await GR.save(state);
     render();

@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "GoodReddit",
+  "name": "Reddibility",
   "version": "1.0.0",
   "description": "Make Reddit (and any site) easier to read: declutter the feed & sidebars, hide promoted posts, comfortable themes and typography. Per-site or global.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "goodreadability@local.extension",
+      "id": "reddibility@local.extension",
       "strict_min_version": "115.0"
     }
   },
@@ -14,7 +14,7 @@
     "96": "icons/icon.svg"
   },
   "action": {
-    "default_title": "GoodReddit (Alt+R)",
+    "default_title": "Reddibility (Alt+R)",
     "default_popup": "popup/popup.html",
     "default_icon": "icons/icon.svg"
   },
@@ -38,7 +38,7 @@
   "commands": {
     "toggle-readability": {
       "suggested_key": { "default": "Alt+R" },
-      "description": "Toggle GoodReddit on the current page"
+      "description": "Toggle Reddibility on the current page"
     }
   }
 }

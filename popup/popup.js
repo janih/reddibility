@@ -1,4 +1,4 @@
-/* GoodReddit popup controller. */
+/* Reddibility popup controller. */
 document.addEventListener("DOMContentLoaded", init);
 
 var currentDomain = "";

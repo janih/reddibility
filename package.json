@@ -1,8 +1,8 @@
 {
-  "name": "goodreddit",
+  "name": "reddibility",
   "private": true,
   "version": "1.0.0",
-  "description": "GoodReddit Firefox extension - automated test suite",
+  "description": "Reddibility Firefox extension - automated test suite",
   "type": "commonjs",
   "scripts": {
     "test": "vitest run"

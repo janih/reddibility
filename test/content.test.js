@@ -119,7 +119,7 @@ describe("content.js applyReddit", () => {
     content.RD_CLASSES.forEach((c) => expect(html.classList.contains(c)).toBe(false));
   });
 
-  it("adds no gr-rd-* classes when GoodReddit itself is disabled", () => {
+  it("adds no gr-rd-* classes when Reddibility itself is disabled", () => {
     content.applyReddit(html, { enabled: false, reddit: GR.DEFAULTS.reddit });
     content.RD_CLASSES.forEach((c) => expect(html.classList.contains(c)).toBe(false));
   });

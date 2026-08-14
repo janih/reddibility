@@ -1,5 +1,5 @@
 /* =========================================================================
-   GoodReddit — Reddit (new / shreddit) tweaks
+   Reddibility — Reddit (new / shreddit) tweaks
    Gated behind .gr-reddit plus feature classes set by content.js.
    Targets new Reddit markup (www/new/sh.reddit.com). Reddit changes its DOM
    often — treat these as best-effort and update selectors as needed.
@@ -7,7 +7,7 @@
 
 /* -------------------------------------------------------------------------
    THEME — recolor Reddit natively by overriding its RPL design tokens.
-   Each neutral/brand token is derived from the active GoodReddit theme via
+   Each neutral/brand token is derived from the active Reddibility theme via
    color-mix(), so all 7 themes work. Applied to html and every element (*)
    with !important so it beats Reddit's own token definitions.
    ========================================================================= */
@@ -47,7 +47,7 @@ html.gr-reddit * {
    never matched anything. `shreddit-post-share-button` IS a real custom
    element tag, so that one was already correct. These components were
    reported always rendering with a black background regardless of the
-   selected GoodReddit theme — likely because they resolve backgrounds via
+   selected Reddibility theme — likely because they resolve backgrounds via
    the CSS light-dark() function tied to the `color-scheme` property, which
    normally tracks the OS/browser dark-mode preference rather than Reddit's
    own --color-* tokens. content.js sets an actual `color-scheme` property

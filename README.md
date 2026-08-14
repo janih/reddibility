@@ -1,4 +1,4 @@
-# GoodReddit
+# Reddibility
 
 A Firefox extension that makes **Reddit** (and any website) easier to read.
 Declutter the new-Reddit feed and sidebars, hide promoted posts, widen the
@@ -60,7 +60,7 @@ per-site.
 ## Package as `.xpi`
 
 ```bash
-zip -r -FS goodreddit.xpi * -x "*.xpi" -x "*.DS_Store"
+zip -r -FS reddibility.xpi * -x "*.xpi" -x "*.DS_Store"
 ```
 
 ## Usage

@@ -1,4 +1,4 @@
-/* GoodReddit background script: keyboard shortcut + badge indicator.
+/* Reddibility background script: keyboard shortcut + badge indicator.
    Tab delivery (message + fallback injection) and badge updates live in
    lib/shared.js (GR.applyToTab / GR.updateBadge) so the popup and options
    page can share the exact same behavior, including badge refreshes. */

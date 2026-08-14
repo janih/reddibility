@@ -212,7 +212,7 @@ describe("GR.load / GR.save", () => {
       storage: {
         local: {
           get: vi.fn().mockResolvedValue({
-            goodreadability: {
+            reddibility: {
               global: { fontSize: 200 },
               perDomain: { "reddit.com": { theme: "dark" } },
               prefs: { uiMode: "dark" },
@@ -227,6 +227,25 @@ describe("GR.load / GR.save", () => {
     expect(state.prefs.uiMode).toBe("dark");
   });
 
+  it("load() migrates settings still stored under the legacy pre-rename key", async () => {
+    // The project was renamed to Reddibility; data saved under the old
+    // "goodreadability" key must still load, be copied to the new key, and
+    // the legacy copy removed.
+    const get = vi.fn().mockResolvedValue({ goodreadability: { global: { fontSize: 130 } } });
+    const set = vi.fn().mockResolvedValue(undefined);
+    const remove = vi.fn().mockResolvedValue(undefined);
+    global.browser = { storage: { local: { get, set, remove } } };
+
+    const state = await GR.load();
+
+    expect(state.global.fontSize).toBe(130);
+    expect(set).toHaveBeenCalledTimes(1);
+    expect(set).toHaveBeenCalledWith({ reddibility: state });
+    // The legacy removal chains off the set() promise.
+    await new Promise((r) => setTimeout(r, 0));
+    expect(remove).toHaveBeenCalledWith("goodreadability");
+  });
+
   it("load() deep-merges stored reddit settings with current defaults", async () => {
     // Settings saved by an older version lack newer reddit.* keys; they must
     // be backfilled, and the stored object must not alias GR.DEFAULTS.reddit.
@@ -234,7 +253,7 @@ describe("GR.load / GR.save", () => {
       storage: {
         local: {
           get: vi.fn().mockResolvedValue({
-            goodreadability: { global: { reddit: { hideAds: false } } },
+            reddibility: { global: { reddit: { hideAds: false } } },
           }),
         },
       },
@@ -245,12 +264,12 @@ describe("GR.load / GR.save", () => {
     expect(state.global.reddit).not.toBe(GR.DEFAULTS.reddit);
   });
 
-  it("save() writes the state under the 'goodreadability' key", async () => {
+  it("save() writes the state under the 'reddibility' key", async () => {
     const set = vi.fn().mockResolvedValue(undefined);
     global.browser = { storage: { local: { set } } };
     const state = GR.emptyState();
     await GR.save(state);
-    expect(set).toHaveBeenCalledWith({ goodreadability: state });
+    expect(set).toHaveBeenCalledWith({ reddibility: state });
   });
 });
 

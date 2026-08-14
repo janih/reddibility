@@ -2,10 +2,17 @@
 
 ## Project
 
-GoodReddit is a Firefox extension (Manifest V3) that improves readability of
+Reddibility is a Firefox extension (Manifest V3) that improves readability of
 Reddit's new layout — hiding ads/promoted posts, decluttering sidebars,
-widening content, and applying themes & typography — plus general readability
+widen content, and applying themes & typography — plus general readability
 features (themes, fonts, spacing) intended to work on any website over time.
+
+The project was renamed GoodReddit → Reddibility. The storage key moved to
+"reddibility" (with a one-time migration from the old "goodreadability" key
+in `lib/shared.js`'s `load()`), and the extension id is now
+`reddibility@local.extension`. The internal `GR` global and `gr-*` class
+prefixes predate the rename and are intentionally kept — renaming them
+would churn every CSS selector and test for no user-visible benefit.
 
 ## Layout
 
@@ -295,7 +302,7 @@ features (themes, fonts, spacing) intended to work on any website over time.
   `shreddit-post-share-button` aren't present in any current `reddit/`
   capture (they're part of a newer Reddit UI change, not yet re-captured),
   but were reported always rendering with a black background regardless of
-  the selected GoodReddit theme.
+  the selected Reddibility theme.
 - Unlike most Reddit RPL surfaces — recolored by the existing
   `html.gr-reddit, html.gr-reddit *` block, which overrides Reddit's
   overridable `--color-*` design tokens via `color-mix()` — these

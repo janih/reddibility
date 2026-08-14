@@ -1,4 +1,4 @@
-/* GoodReddit content script.
+/* Reddibility content script.
    Applies the merged settings to the page by toggling the .gr-active class on
    <html> and writing CSS variables into a <style> element. */
 (function () {

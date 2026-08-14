@@ -1,4 +1,4 @@
-/* GoodReddit — structural rules. Variables are set dynamically by content.js
+/* Reddibility — structural rules. Variables are set dynamically by content.js
    on :root.gr-active. When the .gr-active class is removed, every rule below
    stops matching and the page returns to its original styling. */
 
