@@ -128,6 +128,7 @@ describe("content.js applyReddit", () => {
         hideTopBar: false,
         minimizeJoinButtons: true,
         forceButtonColors: false,
+        hideAvatars: true,
       },
     });
     expect(html.classList.contains("gr-reddit")).toBe(true);
@@ -142,6 +143,7 @@ describe("content.js applyReddit", () => {
     expect(html.classList.contains("gr-rd-notopbar")).toBe(false);
     expect(html.classList.contains("gr-rd-minjoin")).toBe(true);
     expect(html.classList.contains("gr-rd-forcebtncolors")).toBe(false);
+    expect(html.classList.contains("gr-rd-noavatars")).toBe(true);
   });
 
   it("defaults forceButtonColors to on when the field is missing (undefined)", () => {

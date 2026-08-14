@@ -178,4 +178,13 @@ describe("reddit/post_with_media/ capture selectors", () => {
   it("contains the post's primary media container", () => {
     expect(doc.querySelectorAll('div[slot="post-media-container"]').length).toBeGreaterThan(0);
   });
+
+  it("every avatar-icon span wraps an <img> or <svg> that the hide-avatars gate can hide", () => {
+    const avatars = doc.querySelectorAll("span[avatar]");
+    expect(avatars.length).toBeGreaterThan(0);
+    avatars.forEach((avatar) => {
+      const hasImage = avatar.querySelector("img") || avatar.querySelector("svg");
+      expect(hasImage).not.toBeNull();
+    });
+  });
 });

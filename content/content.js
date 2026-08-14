@@ -30,7 +30,7 @@
     "gr-reddit", "gr-rd-ads", "gr-rd-noright", "gr-rd-noleft",
     "gr-rd-notrending", "gr-rd-widen", "gr-rd-compact", "gr-rd-comments",
     "gr-rd-clicktoload", "gr-rd-notopbar", "gr-rd-topbar-shown",
-    "gr-rd-minjoin", "gr-rd-forcebtncolors",
+    "gr-rd-minjoin", "gr-rd-forcebtncolors", "gr-rd-noavatars",
   ];
 
   var TOPBAR_TOGGLER_ID = "gr-topbar-toggler";
@@ -267,6 +267,7 @@
     html.classList.toggle("gr-rd-minjoin", !!rd.minimizeJoinButtons);
     html.classList.toggle("gr-rd-forcebtncolors", rd.forceButtonColors !== false);
     setForceButtonColors(rd.forceButtonColors !== false);
+    html.classList.toggle("gr-rd-noavatars", !!rd.hideAvatars);
   }
 
   function apply(settings) {

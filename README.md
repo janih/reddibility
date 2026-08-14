@@ -32,6 +32,8 @@ per-site.
   light/dark scheme instead of always rendering with a black background;
   toggle "Force theme colors on vote/comment/share buttons" off (on by
   default) to keep Reddit's own colors on just those elements instead
+- **Hide avatars** — replaces post/comment author headshots with a blank,
+  neutral circle placeholder of the same size (opt-in, off by default)
 
 ### General readability (works everywhere)
 - **7 themes** — Light, Sepia, Dark, High Contrast, Solarized Light/Dark, Nord

@@ -323,6 +323,30 @@ html.gr-reddit.gr-rd-minjoin shreddit-join-button[data-testid="credit-bar-join-b
   transform: scale(1);
 }
 
+/* --- Hide post/comment author avatars (opt-in) ---
+   Confirmed against the reddit/post_with_media/ capture: the poster/
+   commenter headshot always lives inside a `<span rpl avatar="">` wrapper
+   (e.g. `<faceplate-tracker noun="comment_author_avatar">` > `<a>` >
+   `span[avatar]`), used both on post credit bars and comment author lines.
+   Note: a bare `[avatar]` selector also matches every `<shreddit-comment
+   avatar="<url>">` element itself (the profile picture URL is stored as an
+   attribute there too) — `span[avatar]` avoids that false match. The
+   actual headshot inside that wrapper is rendered either as a plain <img>
+   or (for "snoovatar" users) an <svg> containing an <image>; hiding both
+   covers either case. `span[avatar]`'s own box already carries fixed
+   width/height (Tailwind w-xl/h-xl etc.) plus rounded-full styling, so
+   hiding just the inner image/svg leaves that box intact — turned into a
+   blank, neutral circle placeholder via a background color instead of
+   collapsing the layout or leaving a gap. */
+html.gr-reddit.gr-rd-noavatars span[avatar] img,
+html.gr-reddit.gr-rd-noavatars span[avatar] svg {
+  display: none !important;
+}
+html.gr-reddit.gr-rd-noavatars span[avatar] {
+  background-color: color-mix(in srgb, var(--gr-text, #1f2328) 15%, var(--gr-bg, #fff)) !important;
+  border-radius: 50% !important;
+}
+
 /* --- Comment readability --- */
 html.gr-reddit.gr-rd-comments shreddit-comment {
   padding-top: 6px !important;

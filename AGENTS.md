@@ -236,6 +236,38 @@ features (themes, fonts, spacing) intended to work on any website over time.
   unlike the media/top-bar features, this one needs no injected DOM or
   teardown logic.
 
+## Hide avatars (blank placeholder)
+
+- New opt-in setting `reddit.hideAvatars` (toggle: "Hide avatars (blank
+  placeholder)", off by default) hides the post/comment author headshot
+  image and leaves a plain, neutral circle in its place instead of removing
+  the element entirely (which would collapse the layout).
+- Confirmed against the `reddit/post_with_media/` capture: every author
+  headshot — on post credit bars and comment author lines alike — lives
+  inside a `<span rpl avatar="">` wrapper (e.g. reached via
+  `<faceplate-tracker noun="comment_author_avatar">` > `<a>` >
+  `span[avatar]`). As previously noted (see the click-to-load media
+  section), a bare `[avatar]` selector is too broad: `<shreddit-comment>`
+  itself also carries an `avatar="<url>"` attribute holding the profile
+  picture URL, so `span[avatar]` is used instead to target only the actual
+  avatar-icon wrapper.
+- The visible headshot inside that wrapper is rendered either as a plain
+  `<img>` (most avatars) or, for "snoovatar" users, an `<svg>` containing an
+  `<image>` — `content/reddit.css` hides both (`span[avatar] img`,
+  `span[avatar] svg`) behind the new `gr-rd-noavatars` class so either case
+  is covered.
+- `span[avatar]`'s own box already carries fixed width/height (Tailwind
+  `w-xl`/`h-xl`/`min-w-*`/`min-h-*` etc.) and `rounded-full` styling, so
+  hiding just the inner image/svg leaves the box's size and shape intact —
+  it's given a neutral `background-color` (mixed from the active theme's
+  `--gr-text`/`--gr-bg`, same `color-mix()` pattern used elsewhere) so it
+  reads as an intentional blank placeholder circle rather than an empty
+  gap or invisible hole.
+- No `content.js` DOM injection or teardown logic was needed beyond adding
+  `gr-rd-noavatars` to `RD_CLASSES` and toggling it from
+  `rd.hideAvatars` in `applyReddit` — this is a pure CSS gate, unlike the
+  media/top-bar features.
+
 ## Vote button / comment action bar / share button always-black gotcha
 
 - `rpl-vote-button-group`, `comments-action-button`, and
