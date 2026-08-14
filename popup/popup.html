@@ -4,18 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="popup.css">
-  <script>
-    // Apply cached UI theme before first paint to avoid a flash.
-    (function () {
-      try {
-        var m = localStorage.getItem("gr_ui");
-        if (m !== "light" && m !== "dark") {
-          m = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
-        }
-        document.documentElement.setAttribute("data-ui-theme", m);
-      } catch (e) {}
-    })();
-  </script>
+  <script src="../lib/theme-boot.js"></script>
 </head>
 <body>
   <header>

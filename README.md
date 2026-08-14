@@ -74,7 +74,13 @@ local `reddit/` captures (78 MB, gitignored) and other dev files (tests,
 
 ```bash
 zip -r -FS reddibility.xpi manifest.json lib background content popup options icons -x "*.DS_Store"
-``
+```
+
+Validate the package locally with the same linter AMO runs before uploading:
+
+```bash
+npx addons-linter reddibility.xpi
+```
 
 ## Usage
 

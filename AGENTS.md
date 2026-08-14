@@ -448,9 +448,15 @@ would churn every CSS selector and test for no user-visible benefit.
   background best-effort calls `browser.action.openPopup()` so the user
   can grant access from the popup (the background can't `permissions.
   request` directly — no user-gesture context).
-- `optional_host_permissions` requires Firefox 128+ — that's why
-  `strict_min_version` is `128.0` (also the reason `activeTab` was dropped:
-  redundant with `tabs` + host permissions, pure permission hygiene).
+- `optional_host_permissions` requires Firefox 128+, and the mandatory
+  (for new AMO submissions since Nov 3, 2025) `browser_specific_settings.
+  gecko.data_collection_permissions` declaration — Reddibility collects
+  nothing, so it declares `{ "required": ["none"] }` — is only parsed by
+  Firefox 140+ (desktop) / 142+ (Android). That's why `strict_min_version`
+  is `140.0` (also the current ESR base; `activeTab` was dropped as
+  redundant with `tabs` + host permissions — pure permission hygiene).
+  Note: the AMO listing's data-collection questionnaire must stay
+  consistent with this declaration ("no data collected").
 - The popup shows a hint row (`#site-perm-hint`) when the current site is
   non-Reddit and has no access yet, so the permission prompt isn't a
   surprise.
@@ -524,6 +530,14 @@ would churn every CSS selector and test for no user-visible benefit.
 - Settings are stored per-site or globally (see `lib/shared.js`); keep new
   settings consistent with that pattern and update both `popup/` and
   `options/` UIs when adding one.
+
+## UI pages gotchas
+
+- Inline `<script>` blocks in extension pages (popup/options) are blocked
+  by MV3's default CSP (`script-src 'self'`) — they silently never ran
+  (caught by `addons-linter`'s INLINE_SCRIPT warning). The pre-paint UI
+  theme snippet therefore lives in `lib/theme-boot.js`, loaded
+  synchronously from `<head>` in both popup.html and options.html.
 
 ## Verifying changes
 
