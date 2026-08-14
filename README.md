@@ -59,9 +59,13 @@ per-site.
 
 ## Package as `.xpi`
 
+Only the runtime files go into the package — whitelist them explicitly so the
+local `reddit/` captures (78 MB, gitignored) and other dev files (tests,
+`node_modules`) never end up inside:
+
 ```bash
-zip -r -FS reddibility.xpi * -x "*.xpi" -x "*.DS_Store"
-```
+zip -r -FS reddibility.xpi manifest.json lib background content popup options icons -x "*.DS_Store"
+``
 
 ## Usage
 
