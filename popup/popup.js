@@ -33,7 +33,9 @@ async function init() {
     if (scopeToggle.checked) {
       if (!currentDomain) { scopeToggle.checked = false; return; }
       editingScope = "domain";
-      currentState.perDomain[currentDomain] = Object.assign({}, GR.effective(currentState, currentDomain));
+      // GR.effective returns a fully detached copy (nested reddit object
+      // included), so the seeded override never aliases global settings.
+      currentState.perDomain[currentDomain] = GR.effective(currentState, currentDomain);
     } else {
       editingScope = "global";
       delete currentState.perDomain[currentDomain];
@@ -100,7 +102,7 @@ function getEditable() {
   if (editingScope === "domain" && currentDomain) {
     // Lazily create a per-site profile seeded from the current effective settings.
     if (!currentState.perDomain[currentDomain]) {
-      currentState.perDomain[currentDomain] = Object.assign({}, GR.effective(currentState, currentDomain));
+      currentState.perDomain[currentDomain] = GR.effective(currentState, currentDomain);
     }
     GR.ensureReddit(currentState.perDomain[currentDomain]);
     return currentState.perDomain[currentDomain];
@@ -174,7 +176,7 @@ function onReset() {
     editingScope = "global";
     document.getElementById("scope").checked = false;
   } else {
-    currentState.global = Object.assign({}, GR.DEFAULTS);
+    currentState.global = GR.emptyState().global; // deep copy — never alias DEFAULTS.reddit
   }
   GR.save(currentState).then(function () { render(); notifyTab(); });
 }

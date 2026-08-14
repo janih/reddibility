@@ -38,7 +38,11 @@ browser.commands.onCommand.addListener(async function (command) {
   // an override for this domain (matches the popup's default per-site behavior).
   var eff = GR.effective(state, domain);
   if (!state.perDomain[domain]) {
-    state.perDomain[domain] = Object.assign({}, state.global);
+    // Seed the override from the effective settings — GR.effective returns a
+    // fully detached deep copy, so the override's nested reddit object can
+    // never alias the global one (a shallow Object.assign copy did exactly
+    // that, leaking later per-site edits into global settings).
+    state.perDomain[domain] = eff;
   }
   state.perDomain[domain].enabled = !eff.enabled;
   await GR.save(state);

@@ -45,17 +45,17 @@ describe("GR.emptyState", () => {
     expect(GR.DEFAULTS.fontSize).not.toBe(999);
   });
 
-  it("documents that the nested reddit sub-object is NOT deep-copied", () => {
+  it("deep-copies the nested reddit sub-object (regression: edits used to leak into DEFAULTS)", () => {
     // Object.assign({}, DEFAULTS) only shallow-copies, so state.global.reddit
-    // is the very same object as GR.DEFAULTS.reddit. This is a regression
-    // guard: if emptyState() is ever changed to deep-copy, this test should
-    // be updated (and the mutation-back-out below removed).
+    // used to BE GR.DEFAULTS.reddit — mutating a setting (e.g. via the
+    // options page) rewrote the shared defaults table, and even "Reset
+    // everything" returned the mutated values.
     const state = GR.emptyState();
-    expect(state.global.reddit).toBe(GR.DEFAULTS.reddit);
+    expect(state.global.reddit).toEqual(GR.DEFAULTS.reddit);
+    expect(state.global.reddit).not.toBe(GR.DEFAULTS.reddit);
     const original = GR.DEFAULTS.reddit.widen;
     state.global.reddit.widen = !original;
-    expect(GR.DEFAULTS.reddit.widen).toBe(!original);
-    GR.DEFAULTS.reddit.widen = original; // restore, since DEFAULTS is a shared singleton
+    expect(GR.DEFAULTS.reddit.widen).toBe(original);
   });
 });
 
@@ -81,6 +81,29 @@ describe("GR.effective", () => {
     state.perDomain["reddit.com"] = { fontSize: 150 };
     const result = GR.effective(state, "");
     expect(result).toEqual(state.global);
+  });
+
+  it("never aliases the nested reddit object between global and override (regression)", () => {
+    // A per-site override used to share the global reddit object, so edits
+    // made with "This site only" active wrote through into global settings.
+    const state = GR.emptyState();
+    state.perDomain["reddit.com"] = { fontSize: 150, reddit: { widen: false } };
+    const result = GR.effective(state, "reddit.com");
+    expect(result.reddit).not.toBe(state.global.reddit);
+    expect(result.reddit).not.toBe(state.perDomain["reddit.com"].reddit);
+    expect(result.reddit.widen).toBe(false);
+    expect(result.reddit.hideAds).toBe(GR.DEFAULTS.reddit.hideAds);
+  });
+
+  it("backfills reddit.* defaults missing from a stale override (settings upgrade)", () => {
+    // e.g. minimizeJoinButtons was added later; overrides saved by an older
+    // version must pick up its default instead of reading as undefined.
+    const state = GR.emptyState();
+    state.perDomain["reddit.com"] = { reddit: { hideAds: false } };
+    const result = GR.effective(state, "reddit.com");
+    expect(result.reddit.hideAds).toBe(false);
+    expect(result.reddit.minimizeJoinButtons).toBe(GR.DEFAULTS.reddit.minimizeJoinButtons);
+    expect(result.reddit.hideAvatars).toBe(GR.DEFAULTS.reddit.hideAvatars);
   });
 });
 
@@ -202,6 +225,24 @@ describe("GR.load / GR.save", () => {
     expect(state.global.fontSize).toBe(200);
     expect(state.perDomain["reddit.com"]).toEqual({ theme: "dark" });
     expect(state.prefs.uiMode).toBe("dark");
+  });
+
+  it("load() deep-merges stored reddit settings with current defaults", async () => {
+    // Settings saved by an older version lack newer reddit.* keys; they must
+    // be backfilled, and the stored object must not alias GR.DEFAULTS.reddit.
+    global.browser = {
+      storage: {
+        local: {
+          get: vi.fn().mockResolvedValue({
+            goodreadability: { global: { reddit: { hideAds: false } } },
+          }),
+        },
+      },
+    };
+    const state = await GR.load();
+    expect(state.global.reddit.hideAds).toBe(false);
+    expect(state.global.reddit.hideAvatars).toBe(GR.DEFAULTS.reddit.hideAvatars);
+    expect(state.global.reddit).not.toBe(GR.DEFAULTS.reddit);
   });
 
   it("save() writes the state under the 'goodreadability' key", async () => {
