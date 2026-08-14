@@ -138,7 +138,7 @@ function bindSlider(id, min, max, step) {
     var v = parseFloat(el.value);
     out.textContent = GR.formatValue(id, v);
     getEditable()[id] = v;
-    notifyTabDebounced();
+    saveAndNotifyDebounced();
   });
   el.addEventListener("change", function () {
     getEditable()[id] = parseFloat(el.value);
@@ -147,9 +147,13 @@ function bindSlider(id, min, max, step) {
   });
 }
 
-function notifyTabDebounced() {
+// Persist + apply slider drags shortly after they happen instead of only on
+// release, so closing the popup mid-drag doesn't lose the current value.
+function saveAndNotifyDebounced() {
   if (notifyTimer) clearTimeout(notifyTimer);
-  notifyTimer = setTimeout(notifyTab, 60);
+  notifyTimer = setTimeout(function () {
+    GR.save(currentState).then(notifyTab);
+  }, 60);
 }
 
 async function notifyTab() {

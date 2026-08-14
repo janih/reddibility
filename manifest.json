@@ -32,7 +32,7 @@
       "matches": ["<all_urls>"],
       "js": ["lib/shared.js", "content/content.js"],
       "css": ["content/content.css", "content/reddit.css"],
-      "run_at": "document_idle"
+      "run_at": "document_start"
     }
   ],
   "commands": {

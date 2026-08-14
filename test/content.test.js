@@ -66,6 +66,24 @@ describe("content.js buildCSS", () => {
     expect(css).toContain("--gr-bg: " + GR.THEMES.sepia.bg + ";");
     expect(css).toContain("--gr-font: " + GR.FONT_STACKS.sans + ";");
   });
+
+  it("falls back to default numbers for corrupted numeric settings", () => {
+    const content = loadContentModule();
+    const css = content.buildCSS({
+      theme: "dark",
+      fontFamily: "sans",
+      fontSize: "garbage",
+      lineHeight: null,
+      letterSpacing: undefined,
+      wordSpacing: {},
+      textWidth: NaN,
+    });
+    expect(css).toContain("--gr-font-size: " + GR.DEFAULTS.fontSize + "%;");
+    expect(css).toContain("--gr-line-height: " + GR.DEFAULTS.lineHeight + ";");
+    expect(css).toContain("--gr-letter-spacing: " + GR.DEFAULTS.letterSpacing + "em;");
+    expect(css).toContain("--gr-word-spacing: " + GR.DEFAULTS.wordSpacing + "em;");
+    expect(css).toContain("--gr-text-width: " + GR.DEFAULTS.textWidth + "ch;");
+  });
 });
 
 describe("content.js isReddit", () => {
@@ -183,6 +201,9 @@ describe("content.js click-to-load media placeholders", () => {
 
     const placeholder = document.body.querySelector(".gr-media-placeholder");
     expect(placeholder).not.toBeNull();
+    // A <button>, not an <a href="javascript:void(0)"> — same behavior,
+    // without the javascript: URL smell.
+    expect(placeholder.tagName).toBe("BUTTON");
     expect(placeholder.textContent).toBe("Click to show");
     expect(placeholder.nextSibling).toBe(media);
   });

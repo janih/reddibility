@@ -21,17 +21,25 @@
 
   var STYLE_ID = "gr-vars-style";
 
+  // Coerce a setting to a finite number, falling back to the shared default
+  // if it's missing/corrupted (storage damage shouldn't poison the generated
+  // CSS declarations — an invalid value would drop the whole custom property).
+  function num(v, fallback) {
+    v = parseFloat(v);
+    return isFinite(v) ? v : fallback;
+  }
+
   function buildCSS(settings) {
     var theme = GR.THEMES[settings.theme] || GR.THEMES.sepia;
     var font = GR.FONT_STACKS[settings.fontFamily] || GR.FONT_STACKS.sans;
     return (
       ":root.gr-active {" +
       "--gr-font: " + font + ";" +
-      "--gr-font-size: " + settings.fontSize + "%;" +
-      "--gr-line-height: " + settings.lineHeight + ";" +
-      "--gr-letter-spacing: " + settings.letterSpacing + "em;" +
-      "--gr-word-spacing: " + settings.wordSpacing + "em;" +
-      "--gr-text-width: " + settings.textWidth + "ch;" +
+      "--gr-font-size: " + num(settings.fontSize, GR.DEFAULTS.fontSize) + "%;" +
+      "--gr-line-height: " + num(settings.lineHeight, GR.DEFAULTS.lineHeight) + ";" +
+      "--gr-letter-spacing: " + num(settings.letterSpacing, GR.DEFAULTS.letterSpacing) + "em;" +
+      "--gr-word-spacing: " + num(settings.wordSpacing, GR.DEFAULTS.wordSpacing) + "em;" +
+      "--gr-text-width: " + num(settings.textWidth, GR.DEFAULTS.textWidth) + "ch;" +
       "--gr-bg: " + theme.bg + ";" +
       "--gr-text: " + theme.text + ";" +
       "--gr-link: " + theme.link + ";" +
@@ -235,8 +243,8 @@
     if (!el || el.classList.contains("gr-media-revealed")) return;
     if (el.dataset && el.dataset.grMediaGated === "1") return;
     if (el.dataset) el.dataset.grMediaGated = "1";
-    var placeholder = document.createElement("a");
-    placeholder.href = "javascript:void(0)";
+    var placeholder = document.createElement("button");
+    placeholder.type = "button";
     placeholder.className = "gr-media-placeholder";
     placeholder.textContent = "Click to show";
     placeholder.addEventListener("click", function (e) {
