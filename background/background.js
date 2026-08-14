@@ -1,29 +1,7 @@
-/* GoodReddit background script: keyboard shortcut + badge indicator. */
-
-function updateBadge(tabId, enabled) {
-  return Promise.all([
-    browser.action.setBadgeText({ text: enabled ? "ON" : "", tabId: tabId }),
-    browser.action.setBadgeBackgroundColor({ color: "#7c3aed", tabId: tabId }),
-  ]).catch(function () {});
-}
-
-async function applyToTab(tab, settings) {
-  try {
-    await browser.tabs.sendMessage(tab.id, { type: "apply", settings: settings });
-  } catch (e) {
-    // Content script may not be loaded yet (e.g. page loaded before install,
-    // or it ran on a frame it doesn't match). Inject as a fallback.
-    try {
-      await browser.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["lib/shared.js", "content/content.js"],
-      });
-      await browser.tabs.sendMessage(tab.id, { type: "apply", settings: settings });
-    } catch (_) {
-      /* restricted page (about:*, file://*, etc.) — ignore */
-    }
-  }
-}
+/* GoodReddit background script: keyboard shortcut + badge indicator.
+   Tab delivery (message + fallback injection) and badge updates live in
+   lib/shared.js (GR.applyToTab / GR.updateBadge) so the popup and options
+   page can share the exact same behavior, including badge refreshes. */
 
 browser.commands.onCommand.addListener(async function (command) {
   if (command !== "toggle-readability") return;
@@ -48,8 +26,8 @@ browser.commands.onCommand.addListener(async function (command) {
   await GR.save(state);
 
   var settings = GR.effective(state, domain);
-  await applyToTab(tab, settings);
-  updateBadge(tab.id, settings.enabled);
+  GR.applyToTab(tab.id, settings).catch(function () {}); // restricted pages — ignore
+  GR.updateBadge(tab.id, settings.enabled);
 });
 
 browser.tabs.onUpdated.addListener(async function (tabId, change, tab) {

@@ -157,17 +157,12 @@ async function notifyTab() {
   var tab = tabs[0];
   if (!tab) return;
   var settings = effectiveNow();
-  try {
-    await browser.tabs.sendMessage(tab.id, { type: "apply", settings: settings });
-  } catch (e) {
-    try {
-      await browser.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["lib/shared.js", "content/content.js"],
-      });
-      await browser.tabs.sendMessage(tab.id, { type: "apply", settings: settings });
-    } catch (_) { /* restricted page */ }
-  }
+  // Shared delivery helper (injects the content script + CSS first if the
+  // page predates the extension); also refresh the badge so toggling from
+  // the popup doesn't leave a stale indicator (previously only Alt+R and
+  // page loads updated it).
+  await GR.applyToTab(tab.id, settings).catch(function () { /* restricted page */ });
+  GR.updateBadge(tab.id, settings.enabled);
 }
 
 function onReset() {

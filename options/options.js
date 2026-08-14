@@ -90,7 +90,8 @@ async function notifyAll() {
   tabs.forEach(function (t) {
     if (!/^https?:/.test(t.url || "")) return;
     var settings = GR.effective(state, GR.getDomain(t.url));
-    browser.tabs.sendMessage(t.id, { type: "apply", settings: settings }).catch(function () {});
+    GR.applyToTab(t.id, settings).catch(function () {});
+    GR.updateBadge(t.id, settings.enabled);
   });
 }
 

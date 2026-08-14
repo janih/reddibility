@@ -4,6 +4,21 @@
 (function () {
   "use strict";
 
+  // Re-injection guard. GR.applyToTab (lib/shared.js) injects this script
+  // into tabs whose page predates the extension; if it ever runs twice in
+  // the same document, a second runtime.onMessage listener and a second set
+  // of MutationObservers would stack up. `window` inside a content script's
+  // isolated world is shared between injections of the same extension but
+  // invisible to page code, so it's a safe sentinel location. Under Node
+  // (tests) `module` is defined, so the guard never blocks the require()-
+  // based test loading path.
+  if (typeof window !== "undefined" && typeof module === "undefined" && window.__grLoaded) {
+    return;
+  }
+  if (typeof window !== "undefined") {
+    window.__grLoaded = true;
+  }
+
   var STYLE_ID = "gr-vars-style";
 
   function buildCSS(settings) {

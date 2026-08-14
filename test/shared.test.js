@@ -253,3 +253,83 @@ describe("GR.load / GR.save", () => {
     expect(set).toHaveBeenCalledWith({ goodreadability: state });
   });
 });
+
+describe("GR.applyToTab", () => {
+  let originalBrowser;
+
+  beforeEach(() => {
+    originalBrowser = global.browser;
+  });
+
+  afterEach(() => {
+    global.browser = originalBrowser;
+  });
+
+  it("sends the apply message directly when the content script is already there", async () => {
+    const sendMessage = vi.fn().mockResolvedValue(undefined);
+    global.browser = { tabs: { sendMessage }, scripting: {} };
+    await GR.applyToTab(7, { enabled: true });
+    expect(sendMessage).toHaveBeenCalledWith(7, { type: "apply", settings: { enabled: true } });
+  });
+
+  it("injects CSS + JS before retrying when no content script is loaded", async () => {
+    const sendMessage = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("no receiver"))
+      .mockResolvedValueOnce(undefined);
+    const insertCSS = vi.fn().mockResolvedValue(undefined);
+    const executeScript = vi.fn().mockResolvedValue(undefined);
+    global.browser = { tabs: { sendMessage }, scripting: { insertCSS, executeScript } };
+
+    await GR.applyToTab(7, { enabled: true });
+
+    // CSS must be injected too — a JS-only fallback used to toggle gr-*
+    // classes that had no matching rules.
+    expect(insertCSS).toHaveBeenCalledWith({
+      target: { tabId: 7 },
+      files: ["content/content.css", "content/reddit.css"],
+    });
+    expect(executeScript).toHaveBeenCalledWith({
+      target: { tabId: 7 },
+      files: ["lib/shared.js", "content/content.js"],
+    });
+    expect(sendMessage).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects (for the caller to ignore) on restricted pages", async () => {
+    const sendMessage = vi.fn().mockRejectedValue(new Error("no receiver"));
+    const insertCSS = vi.fn().mockRejectedValue(new Error("restricted"));
+    global.browser = { tabs: { sendMessage }, scripting: { insertCSS } };
+    await expect(GR.applyToTab(7, {})).rejects.toThrow("restricted");
+    expect(sendMessage).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("GR.updateBadge", () => {
+  let originalBrowser;
+
+  beforeEach(() => {
+    originalBrowser = global.browser;
+  });
+
+  afterEach(() => {
+    global.browser = originalBrowser;
+  });
+
+  it("shows ON for enabled tabs and clears it for disabled ones", async () => {
+    const setBadgeText = vi.fn().mockResolvedValue(undefined);
+    const setBadgeBackgroundColor = vi.fn().mockResolvedValue(undefined);
+    global.browser = { action: { setBadgeText, setBadgeBackgroundColor } };
+
+    await GR.updateBadge(5, true);
+    expect(setBadgeText).toHaveBeenCalledWith({ text: "ON", tabId: 5 });
+
+    await GR.updateBadge(5, false);
+    expect(setBadgeText).toHaveBeenCalledWith({ text: "", tabId: 5 });
+  });
+
+  it("is a no-op without browser.action (e.g. content-script contexts)", async () => {
+    global.browser = { storage: {} };
+    await expect(GR.updateBadge(5, true)).resolves.toBeUndefined();
+  });
+});
