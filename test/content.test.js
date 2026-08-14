@@ -318,6 +318,45 @@ describe("content.js shadow-DOM button theming", () => {
     expect(shadow.getElementById("gr-shadow-btn-style")).toBeNull();
   });
 
+  it("restarts the scan from scratch when re-enabled after being disabled", () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: "open" });
+    content.setForceButtonColors(true);
+    expect(shadow.getElementById("gr-shadow-btn-style")).not.toBeNull();
+
+    content.setForceButtonColors(false);
+    expect(shadow.getElementById("gr-shadow-btn-style")).toBeNull();
+
+    // Disabling tears the scan down entirely; re-enabling must rescan the
+    // document and re-style still-connected shadow roots.
+    content.setForceButtonColors(true);
+    expect(shadow.getElementById("gr-shadow-btn-style")).not.toBeNull();
+  });
+
+  it("prunes detached shadow roots so memory doesn't grow during infinite scroll", () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: "open" });
+    content.setForceButtonColors(true);
+    content.visitShadowRoot(shadow);
+    expect(content.shadowRootsSeen.has(shadow)).toBe(true);
+
+    // Reddit virtualizes its feeds: scrolled-past posts (and their shadow
+    // roots) get detached. Pruning must forget them so they can be GC'd.
+    host.remove();
+    content.pruneShadowRoots();
+    expect(content.shadowRootsSeen.has(shadow)).toBe(false);
+
+    // A still-connected root survives pruning.
+    const liveHost = document.createElement("div");
+    document.body.appendChild(liveHost);
+    const liveShadow = liveHost.attachShadow({ mode: "open" });
+    content.visitShadowRoot(liveShadow);
+    content.pruneShadowRoots();
+    expect(content.shadowRootsSeen.has(liveShadow)).toBe(true);
+  });
+
   it("recursively discovers nested shadow roots (e.g. the share button's own shadow root)", () => {
     const outerHost = document.createElement("div");
     document.body.appendChild(outerHost);

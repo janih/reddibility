@@ -99,7 +99,11 @@
     "}";
   var forceButtonColorsEnabled = false;
   var shadowRootsSeen = new Set();
+  var shadowRootObservers = new Map(); // shadow root -> its MutationObserver
   var shadowScanStarted = false;
+  var shadowScanObserver = null; // top-level document observer
+  var lastShadowPrune = 0;
+  var SHADOW_PRUNE_INTERVAL_MS = 5000;
 
   function injectShadowButtonStyle(root) {
     if (!root || root.getElementById(SHADOW_BTN_STYLE_ID)) return;
@@ -140,17 +144,25 @@
         });
       });
     });
+    shadowRootObservers.set(sr, obs);
     obs.observe(sr, { childList: true, subtree: true });
   }
 
   // Start (once) scanning the whole document for shadow roots, plus a
   // top-level observer to catch new shadow hosts as Reddit's SPA renders
-  // more content.
+  // more content. The callback also periodically prunes bookkeeping for
+  // detached shadow roots (see pruneShadowRoots) so long infinite-scroll
+  // sessions don't accumulate dead entries between user interactions.
   function startShadowRootScan() {
     scanForShadowRoots(document);
     if (shadowScanStarted) return;
     shadowScanStarted = true;
     var obs = new MutationObserver(function (mutations) {
+      var now = Date.now();
+      if (now - lastShadowPrune > SHADOW_PRUNE_INTERVAL_MS) {
+        lastShadowPrune = now;
+        pruneShadowRoots();
+      }
       mutations.forEach(function (m) {
         m.addedNodes.forEach(function (node) {
           if (node.nodeType !== 1) return;
@@ -159,16 +171,56 @@
         });
       });
     });
+    shadowScanObserver = obs;
     obs.observe(document.documentElement, { childList: true, subtree: true });
+  }
+
+  // Drop bookkeeping for shadow roots whose host has been detached from the
+  // document (Reddit virtualizes its feeds, so scrolled-past posts are
+  // removed wholesale). Without this, shadowRootsSeen held strong references
+  // to detached trees while their per-root observers kept running — memory
+  // grew without bound over a long session. If a pruned subtree is ever
+  // re-attached, an ancestor's observer (or the top-level scan) re-registers
+  // it via visitShadowRoot, and injectShadowButtonStyle is idempotent.
+  function pruneShadowRoots() {
+    var dead = [];
+    shadowRootsSeen.forEach(function (sr) {
+      if (!sr.host || !sr.host.isConnected) dead.push(sr);
+    });
+    dead.forEach(function (sr) {
+      var obs = shadowRootObservers.get(sr);
+      if (obs) {
+        obs.disconnect();
+        shadowRootObservers.delete(sr);
+      }
+      shadowRootsSeen.delete(sr);
+    });
+  }
+
+  // Fully stop the shadow scan: disconnect the top-level and per-root
+  // observers and forget every root. Called when forceButtonColors is off —
+  // nothing needs watching then, and re-enabling rescans from scratch.
+  function stopShadowRootScan() {
+    if (shadowScanObserver) {
+      shadowScanObserver.disconnect();
+      shadowScanObserver = null;
+    }
+    shadowRootObservers.forEach(function (obs) { obs.disconnect(); });
+    shadowRootObservers.clear();
+    shadowRootsSeen.clear();
+    shadowScanStarted = false;
+    lastShadowPrune = 0;
   }
 
   function setForceButtonColors(enabled) {
     forceButtonColorsEnabled = !!enabled;
-    if (forceButtonColorsEnabled) startShadowRootScan();
-    shadowRootsSeen.forEach(function (sr) {
-      if (forceButtonColorsEnabled) injectShadowButtonStyle(sr);
-      else removeShadowButtonStyle(sr);
-    });
+    if (forceButtonColorsEnabled) {
+      startShadowRootScan();
+      shadowRootsSeen.forEach(function (sr) { injectShadowButtonStyle(sr); });
+    } else {
+      shadowRootsSeen.forEach(function (sr) { removeShadowButtonStyle(sr); });
+      stopShadowRootScan();
+    }
   }
 
   function isReddit() {
@@ -218,6 +270,16 @@
     mediaObserver.observe(document.documentElement, { childList: true, subtree: true });
   }
 
+  // Disconnect the media observer when the feature is off — its callback
+  // already no-ops without the gr-rd-clicktoload class, but there's no
+  // reason to keep it running (and re-registered on re-enable) either.
+  function stopMediaObserver() {
+    if (mediaObserver) {
+      mediaObserver.disconnect();
+      mediaObserver = null;
+    }
+  }
+
   function teardownMediaPlaceholders() {
     document.querySelectorAll(".gr-media-placeholder").forEach(function (p) { p.remove(); });
     document.querySelectorAll('[data-gr-media-gated="1"]').forEach(function (el) {
@@ -254,6 +316,7 @@
     if (!on) {
       RD_CLASSES.forEach(function (c) { html.classList.remove(c); });
       teardownMediaPlaceholders();
+      stopMediaObserver();
       teardownTopBarToggler();
       setForceButtonColors(false);
       return;
@@ -272,6 +335,7 @@
       scanForGatedMedia(document);
     } else {
       teardownMediaPlaceholders();
+      stopMediaObserver();
     }
     html.classList.toggle("gr-rd-notopbar", !!rd.hideTopBar);
     if (rd.hideTopBar) {
@@ -345,9 +409,14 @@
       visitShadowRoot: visitShadowRoot,
       scanForShadowRoots: scanForShadowRoots,
       startShadowRootScan: startShadowRootScan,
+      stopShadowRootScan: stopShadowRootScan,
+      pruneShadowRoots: pruneShadowRoots,
+      shadowRootsSeen: shadowRootsSeen,
       setForceButtonColors: setForceButtonColors,
       injectShadowButtonStyle: injectShadowButtonStyle,
       removeShadowButtonStyle: removeShadowButtonStyle,
+      startMediaObserver: startMediaObserver,
+      stopMediaObserver: stopMediaObserver,
     };
   }
 })();
