@@ -404,6 +404,49 @@ features (themes, fonts, spacing) intended to work on any website over time.
   the button reads as a slightly darker, distinct surface rather than
   blending into the page background.
 
+## Settings copy/merge + tab-delivery gotchas
+
+- `Object.assign` is shallow. Copying settings with it (`emptyState`,
+  `load`, `effective`, and every place that seeded a per-domain override:
+  popup scope switch, popup `getEditable`, Alt+R toggle, popup Reset)
+  used to alias the nested `reddit` object, so per-site edits leaked into
+  global settings, and `emptyState()`'s alias of `DEFAULTS.reddit` meant
+  options-page edits mutated the shared defaults table itself — "Reset
+  everything" returned the mutated values. `lib/shared.js` now deep-copies
+  (`cloneSettings`) / deep-merges (`effective`) the `reddit` sub-object;
+  all seeding sites go through `GR.effective`, which returns a fully
+  detached object. The deep merge also backfills `reddit.*` keys added in
+  newer versions for settings saved by older ones (upgrade path), which is
+  why feature code can rely on `!!rd.<key>` rather than per-key fallbacks.
+- `GR.applyToTab(tabId, settings)` (in `lib/shared.js`, used by
+  background, popup, and options) delivers the "apply" message and, when
+  the tab has no content script (page predates the extension), falls back
+  to `scripting.insertCSS` (`content.css` + `reddit.css`) **before**
+  `executeScript` — a JS-only fallback used to toggle `gr-*` classes that
+  had no matching rules. Repeated injections are safe because
+  `content.js` starts with a `window.__grLoaded` guard (in the content
+  script's isolated world, shared between injections of the same
+  extension, invisible to page code; skipped under Node where `module` is
+  defined so tests can `require()` repeatedly).
+- `GR.updateBadge(tabId, enabled)` (also `lib/shared.js`; no-op without
+  `browser.action`) is called from background, popup, and options — the
+  badge used to go stale when toggling from anywhere other than Alt+R or
+  a page load.
+- The shadow-DOM scan keeps a `Set` of seen roots plus a `Map` of their
+  observers. Reddit virtualizes its feeds, so scrolled-past posts leave
+  detached shadow roots; without pruning these were strong references
+  with live observers, growing memory without bound. `pruneShadowRoots()`
+  (throttled from the top-level observer callback) forgets roots whose
+  host is disconnected — they self-heal via `visitShadowRoot` if Reddit
+  re-attaches them. `setForceButtonColors(false)` tears the whole scan
+  down (observers disconnected, sets cleared); re-enabling rescans from
+  scratch. The media observer is likewise disconnected whenever
+  click-to-load is off.
+- Content scripts run at `document_start` (manifest.json) so the theme
+  classes/variables land before first paint; the code already guards for
+  `document.head`/`document.body` not existing yet (style/toggler attach
+  to `document.documentElement` as a fallback).
+
 ## Typography settings gotchas
 
 - `--gr-font-size` is applied on `html.gr-active` (the root element), not
@@ -465,25 +508,30 @@ features (themes, fonts, spacing) intended to work on any website over time.
   jsdom document unless a test explicitly stubs `global.browser`.
 - `test/shared.test.js` — unit tests for `lib/shared.js`'s pure(ish)
   functions: `getDomain`, `emptyState`, `effective` (including per-domain
-  override merging), `formatValue`, `ensureReddit`, `resolveUiMode`, the
-  `THEMES` table's `scheme` field, and `load`/`save` (with `browser.
-  storage.local` stubbed via `vi.fn()`). Several of these functions are
-  exactly where this project has previously introduced subtle regressions
-  (e.g. per-domain merge behavior, theme `scheme` defaults).
+  override merging, the deep-copy/no-aliasing behavior of the nested
+  `reddit` object, and default backfill for stale overrides), `formatValue`,
+  `ensureReddit`, `resolveUiMode`, the `THEMES` table's `scheme` field,
+  `load`/`save` (with `browser.storage.local` stubbed via `vi.fn()`), plus
+  `applyToTab` (direct send vs. CSS+JS fallback injection) and
+  `updateBadge`. Several of these functions are exactly where this project
+  has previously introduced subtle regressions (e.g. per-domain merge
+  behavior, theme `scheme` defaults, settings aliasing).
 - `test/content.test.js` — DOM tests (via Vitest's jsdom environment) for
-  `content/content.js`: `buildCSS`'s generated custom properties, `is
-  Reddit`, `applyReddit`'s `gr-rd-*` class toggling for every `reddit.*`
-  setting (including the enabled/disabled and non-Reddit-domain no-op
-  cases), the click-to-load media placeholder lifecycle (`ensureMedia
-  Placeholder`/`scanForGatedMedia`/`teardownMediaPlaceholders`, including
-  the figure.rte-media-vs-avatar distinction), and the shadow-DOM button
-  theming (`visitShadowRoot`/`setForceButtonColors`, including nested
-  shadow roots like the share button's own). Each test calls a small
-  `loadContentModule()` helper that stubs `global.GR`/`global.location` and
-  evicts `content.js` from Node's own `require.cache` (NOT the same cache
-  Vitest's `vi.resetModules()` manages, since this file is loaded via
-  `require()` rather than `import`) so every test starts from clean
-  module-level state (`shadowRootsSeen`, `forceButtonColorsEnabled`, etc.).
+  `content/content.js`: `buildCSS`'s generated custom properties (including
+  corrupted-value fallbacks), `isReddit`, `applyReddit`'s `gr-rd-*` class
+  toggling for every `reddit.*` setting (including the enabled/disabled and
+  non-Reddit-domain no-op cases), the click-to-load media placeholder
+  lifecycle (`ensureMediaPlaceholder`/`scanForGatedMedia`/
+  `teardownMediaPlaceholders`, including the figure.rte-media-vs-avatar
+  distinction), and the shadow-DOM button theming
+  (`visitShadowRoot`/`setForceButtonColors`, including nested shadow roots
+  like the share button's own, detached-root pruning, and the
+  disable/re-enable rescan). Each test calls a small `loadContentModule()`
+  helper that stubs `global.GR`/`global.location` and evicts `content.js`
+  from Node's own `require.cache` (NOT the same cache Vitest's
+  `vi.resetModules()` manages, since this file is loaded via `require()`
+  rather than `import`) so every test starts from clean module-level state
+  (`shadowRootsSeen`, `forceButtonColorsEnabled`, etc.).
 - `test/reddit-selectors.test.js` — regression tests that load the real
   `reddit/**/*.html` captures (see "Working with the `reddit/` reference
   captures" above) into jsdom and assert that the selectors `content/
