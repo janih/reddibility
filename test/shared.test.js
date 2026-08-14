@@ -324,6 +324,171 @@ describe("GR.applyToTab", () => {
   });
 });
 
+describe("GR site access helpers (opt-in non-Reddit sites)", () => {
+  let originalBrowser;
+
+  beforeEach(() => {
+    originalBrowser = global.browser;
+  });
+
+  afterEach(() => {
+    global.browser = originalBrowser;
+  });
+
+  it("recognizes reddit.com and its subdomains as statically permitted", () => {
+    expect(GR.isRedditDomain("reddit.com")).toBe(true);
+    expect(GR.isRedditDomain("old.reddit.com")).toBe(true);
+    expect(GR.isRedditDomain("notreddit.com")).toBe(false);
+    expect(GR.isRedditDomain("reddit.com.evil.io")).toBe(false);
+    expect(GR.isRedditDomain("")).toBe(false);
+  });
+
+  it("builds both origin pattern forms for a domain", () => {
+    expect(GR.originPatternsForDomain("example.com")).toEqual([
+      "*://example.com/*",
+      "*://*.example.com/*",
+    ]);
+  });
+
+  it("derives the domain back from either origin pattern form", () => {
+    expect(GR.domainFromOriginPattern("*://example.com/*")).toBe("example.com");
+    expect(GR.domainFromOriginPattern("*://*.example.com/*")).toBe("example.com");
+    expect(GR.domainFromOriginPattern("<all_urls>")).toBe("");
+    expect(GR.domainFromOriginPattern("")).toBe("");
+  });
+
+  it("hasSiteAccess resolves true without probing for Reddit (static permission)", async () => {
+    const contains = vi.fn();
+    global.browser = { permissions: { contains } };
+    await expect(GR.hasSiteAccess("reddit.com")).resolves.toBe(true);
+    expect(contains).not.toHaveBeenCalled();
+  });
+
+  it("hasSiteAccess probes each origin pattern individually", async () => {
+    // contains() requires ALL listed origins to be granted, so the two
+    // pattern forms must be checked separately (either one suffices).
+    const contains = vi
+      .fn()
+      .mockResolvedValueOnce(false) // bare form
+      .mockResolvedValueOnce(true); // wildcard form
+    global.browser = { permissions: { contains } };
+    await expect(GR.hasSiteAccess("example.com")).resolves.toBe(true);
+    expect(contains).toHaveBeenCalledTimes(2);
+  });
+
+  it("ensureSiteAccess prompts and registers a dynamic content script on grant", async () => {
+    global.browser = {
+      permissions: {
+        contains: vi.fn().mockResolvedValue(false),
+        request: vi.fn().mockResolvedValue(true),
+      },
+      scripting: {
+        getRegisteredContentScripts: vi.fn().mockResolvedValue([]),
+        registerContentScripts: vi.fn().mockResolvedValue(undefined),
+      },
+    };
+    await expect(GR.ensureSiteAccess("example.com")).resolves.toBe(true);
+    expect(global.browser.permissions.request).toHaveBeenCalledWith({
+      origins: ["*://example.com/*", "*://*.example.com/*"],
+    });
+    expect(global.browser.scripting.registerContentScripts).toHaveBeenCalledTimes(1);
+    const spec = global.browser.scripting.registerContentScripts.mock.calls[0][0][0];
+    expect(spec.id).toBe("gr-site-example.com");
+    expect(spec.matches).toEqual(["*://example.com/*", "*://*.example.com/*"]);
+    expect(spec.runAt).toBe("document_start");
+    expect(spec.persistAcrossSessions).toBe(true);
+    expect(spec.js).toEqual(["lib/shared.js", "content/content.js"]);
+    expect(spec.css).toEqual(["content/content.css", "content/reddit.css"]);
+  });
+
+  it("ensureSiteAccess resolves false and registers nothing when denied", async () => {
+    global.browser = {
+      permissions: {
+        contains: vi.fn().mockResolvedValue(false),
+        request: vi.fn().mockResolvedValue(false),
+      },
+      scripting: {
+        getRegisteredContentScripts: vi.fn().mockResolvedValue([]),
+        registerContentScripts: vi.fn(),
+      },
+    };
+    await expect(GR.ensureSiteAccess("example.com")).resolves.toBe(false);
+    expect(global.browser.scripting.registerContentScripts).not.toHaveBeenCalled();
+  });
+
+  it("ensureSiteAccess skips the prompt when access is already granted", async () => {
+    global.browser = {
+      permissions: {
+        contains: vi.fn().mockResolvedValue(true),
+        request: vi.fn(),
+      },
+    };
+    await expect(GR.ensureSiteAccess("example.com")).resolves.toBe(true);
+    expect(global.browser.permissions.request).not.toHaveBeenCalled();
+  });
+
+  it("reconcileSiteScripts registers granted-but-missing sites and unregisters stale ones", async () => {
+    const registerContentScripts = vi.fn().mockResolvedValue(undefined);
+    const unregisterContentScripts = vi.fn().mockResolvedValue(undefined);
+    global.browser = {
+      permissions: {
+        getAll: vi.fn().mockResolvedValue({
+          origins: ["*://*.a.com/*", "*://*.b.com/*", "*://*.reddit.com/*", "<all_urls>"],
+        }),
+      },
+      scripting: {
+        getRegisteredContentScripts: vi.fn().mockResolvedValue([
+          { id: "gr-site-b.com" }, // registered + granted: keep
+          { id: "gr-site-c.com" }, // registered but no grant: stale
+          { id: "someone-elses-script" }, // not ours: leave alone
+        ]),
+        registerContentScripts,
+        unregisterContentScripts,
+      },
+    };
+
+    await GR.reconcileSiteScripts();
+
+    // a.com is granted but missing → registered; b.com untouched;
+    // reddit/<all_urls> ignored; c.com stale → unregistered.
+    expect(registerContentScripts).toHaveBeenCalledTimes(1);
+    expect(registerContentScripts.mock.calls[0][0][0].id).toBe("gr-site-a.com");
+    expect(unregisterContentScripts).toHaveBeenCalledWith({ ids: ["gr-site-c.com"] });
+  });
+
+  it("revokeSiteAccess removes the origin permissions and reconciles", async () => {
+    const remove = vi.fn().mockResolvedValue(true);
+    const unregisterContentScripts = vi.fn().mockResolvedValue(undefined);
+    global.browser = {
+      permissions: {
+        remove,
+        getAll: vi.fn().mockResolvedValue({ origins: [] }),
+      },
+      scripting: {
+        getRegisteredContentScripts: vi
+          .fn()
+          .mockResolvedValue([{ id: "gr-site-example.com" }]),
+        unregisterContentScripts,
+      },
+    };
+
+    await GR.revokeSiteAccess("example.com");
+
+    expect(remove).toHaveBeenCalledWith({
+      origins: ["*://example.com/*", "*://*.example.com/*"],
+    });
+    // Reconcile ran and unregistered the now-unpermitted site script.
+    expect(unregisterContentScripts).toHaveBeenCalledWith({ ids: ["gr-site-example.com"] });
+  });
+
+  it("revokeSiteAccess is a no-op for Reddit (required permission)", async () => {
+    const remove = vi.fn();
+    global.browser = { permissions: { remove } };
+    await expect(GR.revokeSiteAccess("reddit.com")).resolves.toBeUndefined();
+    expect(remove).not.toHaveBeenCalled();
+  });
+});
+
 describe("GR.updateBadge", () => {
   let originalBrowser;
 

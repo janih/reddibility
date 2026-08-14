@@ -5,12 +5,14 @@ var currentDomain = "";
 var currentState = null;
 var editingScope = "global"; // "global" | "domain"
 var notifyTimer = null;
+var siteAccessGranted = true; // Reddit and restricted pages are always "granted"
 
 async function init() {
   var tabs = await browser.tabs.query({ active: true, currentWindow: true });
   var tab = tabs[0];
   currentDomain = tab ? GR.getDomain(tab.url) : "";
   currentState = await GR.load();
+  siteAccessGranted = await GR.hasSiteAccess(currentDomain);
   applyUiTheme();
 
   var mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
@@ -45,10 +47,22 @@ async function init() {
     notifyTab();
   });
 
-  document.getElementById("enable").addEventListener("change", function (e) {
-    getEditable().enabled = e.target.checked;
+  document.getElementById("enable").addEventListener("change", async function (e) {
+    var checked = e.target.checked;
+    // Non-Reddit sites are opt-in: the first "on" flip must happen inside
+    // this user-gesture handler so Firefox can show the permission prompt.
+    if (checked && !siteAccessGranted) {
+      siteAccessGranted = await GR.ensureSiteAccess(currentDomain);
+      if (!siteAccessGranted) {
+        e.target.checked = false; // nothing can run here without access
+        updateSiteAccessHint();
+        return;
+      }
+    }
+    getEditable().enabled = checked;
     GR.save(currentState).then(render);
     notifyTab();
+    updateSiteAccessHint();
   });
 
   document.querySelectorAll("[data-theme]").forEach(function (btn) {
@@ -96,6 +110,15 @@ async function init() {
   });
 
   render();
+  updateSiteAccessHint();
+}
+
+// Explain (and gate on) the opt-in permission model for non-Reddit sites.
+function updateSiteAccessHint() {
+  var hint = document.getElementById("site-perm-hint");
+  if (!hint) return;
+  var needed = !!currentDomain && !GR.isRedditDomain(currentDomain) && !siteAccessGranted;
+  hint.hidden = !needed;
 }
 
 function getEditable() {

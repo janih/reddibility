@@ -60,6 +60,12 @@ header {
   padding: 0 14px 10px; font-size: 11px; color: var(--muted);
   background: var(--panel); word-break: break-all;
 }
+.perm-hint {
+  margin: 0 14px 10px; padding: 7px 9px; font-size: 11px; line-height: 1.45;
+  color: var(--fg); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 7px;
+}
+.perm-hint[hidden] { display: none; }
 .scope-label { font-size: 11px; color: var(--muted); }
 
 .group { padding: 10px 14px; border-bottom: 1px solid var(--border); }

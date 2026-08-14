@@ -51,6 +51,12 @@ async function init() {
   });
   document.getElementById("resetAll").addEventListener("click", async function () {
     if (!confirm("Reset all Reddibility settings, including per-site overrides?")) return;
+    // Capture the overridden domains first: reset must also revoke the
+    // opt-in site access they granted (unregistering their dynamic
+    // content scripts via GR.revokeSiteAccess).
+    Object.keys(state.perDomain).forEach(function (d) {
+      GR.revokeSiteAccess(d);
+    });
     state = GR.emptyState();
     await GR.save(state);
     render();
@@ -145,6 +151,10 @@ function render() {
     btn.textContent = "Remove";
     btn.addEventListener("click", async function () {
       delete state.perDomain[d];
+      // Also drop the opt-in site access this override granted (revoking
+      // the origin permission unregisters its dynamic content script —
+      // without this, the site would keep working until Firefox restart).
+      GR.revokeSiteAccess(d);
       await GR.save(state);
       render();
       notifyAll();

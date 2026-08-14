@@ -3,6 +3,20 @@
    lib/shared.js (GR.applyToTab / GR.updateBadge) so the popup and options
    page can share the exact same behavior, including badge refreshes. */
 
+// Dynamic site-access content scripts (non-Reddit sites are opt-in — see
+// lib/shared.js): keep registrations in sync with the granted origins.
+// Firefox keeps running a registered script after its permission is revoked
+// (bug 1772698), so revocation MUST be answered with an explicit unregister;
+// reconcileSiteScripts() handles that on every permission change and at
+// startup (also healing anything lost across restarts).
+if (browser.permissions && browser.permissions.onAdded) {
+  browser.permissions.onAdded.addListener(function () { GR.reconcileSiteScripts(); });
+}
+if (browser.permissions && browser.permissions.onRemoved) {
+  browser.permissions.onRemoved.addListener(function () { GR.reconcileSiteScripts(); });
+}
+GR.reconcileSiteScripts();
+
 browser.commands.onCommand.addListener(async function (command) {
   if (command !== "toggle-readability") return;
   var tabs = await browser.tabs.query({ active: true, currentWindow: true });
@@ -28,6 +42,18 @@ browser.commands.onCommand.addListener(async function (command) {
   var settings = GR.effective(state, domain);
   GR.applyToTab(tab.id, settings).catch(function () {}); // restricted pages — ignore
   GR.updateBadge(tab.id, settings.enabled);
+  // Non-Reddit sites are opt-in: if access hasn't been granted, nothing can
+  // run there (the toggle above just saves the setting for later).
+  // permissions.request needs a user gesture in an extension page, so the
+  // background can't ask directly — best effort: pop the panel open so the
+  // user can flip the switch and grant access.
+  if (settings.enabled && !GR.isRedditDomain(domain)) {
+    GR.hasSiteAccess(domain).then(function (ok) {
+      if (!ok && browser.action && browser.action.openPopup) {
+        browser.action.openPopup().catch(function () {});
+      }
+    });
+  }
 });
 
 browser.tabs.onUpdated.addListener(async function (tabId, change, tab) {
