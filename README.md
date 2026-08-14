@@ -85,7 +85,8 @@ background/background.js Keyboard shortcut handling + toolbar badge
 popup/                   Toolbar panel UI
 options/                 Full-page options & per-site manager
 icons/icon.svg           Toolbar / store icon
-reddit/                  Saved logged-out Reddit page captures (dev reference)
+reddit/                  Saved logged-out Reddit page captures (dev reference,
+                         local-only — gitignored, never committed)
 ```
 
 ## How it works

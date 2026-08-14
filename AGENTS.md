@@ -32,6 +32,11 @@ would churn every CSS selector and test for no user-visible benefit.
 
 ## Working with the `reddit/` reference captures
 
+- The captures are **local-only reference data**: the `reddit/` folder is
+  gitignored and never committed (large page snapshots with bundled assets,
+  not meant for publication). The capture regression tests
+  (`test/reddit-selectors.test.js`) auto-skip when the folder is absent,
+  e.g. on a fresh clone or CI. Keep your local copy around.
 - `reddit/<page-type>/*.html` plus its matching `*_files/` folder is a full
   offline snapshot of a real, **logged-out** Reddit page (new-Reddit UI),
   saved for reference only. There are currently four captures, all taken
@@ -540,8 +545,9 @@ would churn every CSS selector and test for no user-visible benefit.
   rather than `import`) so every test starts from clean module-level state
   (`shadowRootsSeen`, `forceButtonColorsEnabled`, etc.).
 - `test/reddit-selectors.test.js` — regression tests that load the real
-  `reddit/**/*.html` captures (see "Working with the `reddit/` reference
-  captures" above) into jsdom and assert that the selectors `content/
+  `reddit/**/*.html` captures (local-only, see "Working with the `reddit/`
+  reference captures" above — the suite auto-skips without them) into jsdom
+  and assert that the selectors `content/
   reddit.css`/`content.js` rely on (`.right-rail-popular-communities`,
   `#subreddit-right-rail__partial`, `pdp-back-button` + its avatar sibling,
   `reddit-header-large`, `figure.rte-media`, the per-post join button,

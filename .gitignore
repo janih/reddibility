@@ -22,6 +22,10 @@ npm-debug.log*
 # Node (in case tooling is added later)
 node_modules/
 
+# Local-only Reddit page captures (dev reference; large, not for publication —
+# see AGENTS.md "Working with the reddit/ reference captures")
+reddit/
+
 # Junie agent session artifacts (keep .junie/plans and guidelines tracked)
 .junie/cache/
 .junie/logs/

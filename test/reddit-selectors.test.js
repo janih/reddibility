@@ -21,8 +21,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // `resources: "usable"` is intentionally NOT set (defaults to none) so
 // JSDOM never tries to fetch the captures' external CSS/JS/images — we
 // only care about the static DOM structure here.
+//
+// The captures are local-only (gitignored, never committed — see AGENTS.md),
+// so on a fresh clone this suite auto-skips rather than failing. Keep your
+// local copy of reddit/ around for these tests to run.
 
 const REDDIT_DIR = path.join(__dirname, "..", "reddit");
+
+// Skip every describe below when the local captures aren't present (fresh
+// clone, CI without the captures, …).
+const capturesPresent = fs.existsSync(REDDIT_DIR);
+const describeWithCaptures = capturesPresent ? describe : describe.skip;
 
 // Reddit's inlined Tailwind <style> blocks use arbitrary-value class names
 // (e.g. w-[1120px]) that jsdom's CSS parser can choke on; that only affects
@@ -46,7 +55,7 @@ function loadCapture(...segments) {
   return new JSDOM(html, { virtualConsole, url: "https://www.reddit.com/" });
 }
 
-describe("reddit/frontpage/ capture selectors", () => {
+describeWithCaptures("reddit/frontpage/ capture selectors", () => {
   let dom;
   let doc;
 
@@ -79,7 +88,7 @@ describe("reddit/frontpage/ capture selectors", () => {
   });
 });
 
-describe("reddit/subreddit/ capture selectors", () => {
+describeWithCaptures("reddit/subreddit/ capture selectors", () => {
   let dom;
   let doc;
 
@@ -122,7 +131,7 @@ describe("reddit/subreddit/ capture selectors", () => {
   });
 });
 
-describe("reddit/post/ capture selectors", () => {
+describeWithCaptures("reddit/post/ capture selectors", () => {
   let dom;
   let doc;
 
@@ -153,7 +162,7 @@ describe("reddit/post/ capture selectors", () => {
   });
 });
 
-describe("reddit/post_with_media/ capture selectors", () => {
+describeWithCaptures("reddit/post_with_media/ capture selectors", () => {
   let dom;
   let doc;
 
