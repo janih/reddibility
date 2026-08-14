@@ -337,12 +337,28 @@ html.gr-reddit.gr-rd-minjoin shreddit-join-button[data-testid="credit-bar-join-b
    width/height (Tailwind w-xl/h-xl etc.) plus rounded-full styling, so
    hiding just the inner image/svg leaves that box intact — turned into a
    blank, neutral circle placeholder via a background color instead of
-   collapsing the layout or leaving a gap. */
+   collapsing the layout or leaving a gap.
+   Some avatars ("snoovatar" users) additionally wrap the <svg> in nested
+   `.snoovatar`/absolute-positioned spans, one of which carries its own
+   Tailwind `bg-[image:var(--color-avatar-gradient)]` class — a real
+   `background-image` gradient independent of the <img>/<svg> hidden above,
+   so those avatars kept showing a colorful gradient circle instead of a
+   plain neutral one. Forcing `background-image: none` and
+   `background-color: transparent` on every descendant of `span[avatar]`
+   strips that (and any other inner background) so only the single
+   color-mix() background set on `span[avatar]` itself remains visible,
+   giving every hidden avatar the same flat placeholder regardless of
+   whether it was a plain photo or a snoovatar. */
 html.gr-reddit.gr-rd-noavatars span[avatar] img,
 html.gr-reddit.gr-rd-noavatars span[avatar] svg {
   display: none !important;
 }
+html.gr-reddit.gr-rd-noavatars span[avatar] * {
+  background-image: none !important;
+  background-color: transparent !important;
+}
 html.gr-reddit.gr-rd-noavatars span[avatar] {
+  background-image: none !important;
   background-color: color-mix(in srgb, var(--gr-text, #1f2328) 15%, var(--gr-bg, #fff)) !important;
   border-radius: 50% !important;
 }
