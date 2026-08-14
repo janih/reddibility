@@ -141,3 +141,7 @@ guard at the bottom so they can also be `require()`d directly under Node
 for testing — a no-op in the real browser. Manual verification on
 `reddit.com` is still recommended for anything visual/layout-related, since
 the suite doesn't render real CSS or interact with a live page.
+
+## License
+
+[MIT](LICENSE) © Jani Halinen

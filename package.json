@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "Reddibility Firefox extension - automated test suite",
+  "license": "MIT",
   "type": "commonjs",
   "scripts": {
     "test": "vitest run"
