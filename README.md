@@ -8,6 +8,17 @@ per-site.
 > Built on Firefox Manifest V3. Reddit's DOM changes often, so the cleanup
 > rules are best-effort and easy to edit in `content/reddit.css`.
 
+## Screenshots
+
+The settings panel (toolbar popup):
+
+<table>
+  <tr>
+    <td><img src="docs/screenshot1.png" alt="Reddibility settings panel" width="340"></td>
+    <td><img src="docs/screenshot2.png" alt="Reddibility settings panel" width="340"></td>
+  </tr>
+</table>
+
 ## Features
 
 ### Reddit tweaks (the headline)
