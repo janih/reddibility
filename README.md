@@ -101,7 +101,7 @@ npx addons-linter reddibility.xpi
    affect **only the current site**, so Reddit gets cleaned up (ads gone,
    sidebars hidden, content widened) without changing other sites. On a
    non-Reddit site, Firefox asks once for permission to run there.
-2. Fine-tune via the **Reddit tweaks** checkboxes, and pick a theme/typography.
+2. Fine-tune via the **Tweaks** checkboxes, and pick a theme/typography.
 3. Uncheck **This site only** to apply your changes to *all* sites instead.
 4. Press `Alt+R` to toggle the current site quickly.
 
