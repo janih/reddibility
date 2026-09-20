@@ -161,8 +161,8 @@ would churn every CSS selector and test for no user-visible benefit.
 
 ## Click-to-load media gotcha
 
-- New opt-in setting `reddit.clickToLoadMedia` (toggle: "Click to show images
-  & videos", off by default) gates **user-added** media only — a post's
+- New setting `reddit.clickToLoadMedia` (toggle: "Click to show images
+  & videos", on by default) gates **user-added** media only — a post's
   primary media and images/video embedded in comments — not avatars, icons,
   or other UI chrome.
 - Per the `reddit/post/` capture, a post's primary media (image, gallery,
@@ -203,8 +203,8 @@ would churn every CSS selector and test for no user-visible benefit.
 
 ## Hide top bar + subtle toggler
 
-- New opt-in setting `reddit.hideTopBar` (toggle: "Hide top bar (search /
-  login)", off by default) hides the sticky bar with the logo, search box,
+- New setting `reddit.hideTopBar` (toggle: "Hide top bar (search /
+  login)", on by default) hides the sticky bar with the logo, search box,
   and register/login buttons.
 - Confirmed on all three captures (`reddit/frontpage/`, `reddit/subreddit/`,
   `reddit/post/`), that bar is the `<reddit-header-large>` custom
@@ -228,10 +228,9 @@ would churn every CSS selector and test for no user-visible benefit.
 ## Minimize "Join" buttons
 
 - New setting `reddit.minimizeJoinButtons` (toggle: "Minimize \"Join\"
-  buttons", **on by default** — unlike the other recent opt-in additions,
-  this is a pure declutter tweak with no hidden-functionality tradeoff, so
-  it follows the same default-on pattern as `hideAds`/`hideRightSidebar`/
-  etc.) shrinks and fades the prominent per-post "Join" button in the feed.
+  buttons", **on by default** — the project-wide policy is now default-on
+  for every tweak; users disable what they dislike) shrinks and fades the
+  prominent per-post "Join" button in the feed.
 - Confirmed only on the `reddit/frontpage/` capture: each feed post's credit
   bar (subreddit name + timestamp line) carries a `<shreddit-join-button
   data-testid="credit-bar-join-button">`, since the front page aggregates
@@ -250,8 +249,8 @@ would churn every CSS selector and test for no user-visible benefit.
 
 ## Hide avatars (blank placeholder)
 
-- New opt-in setting `reddit.hideAvatars` (toggle: "Hide avatars (blank
-  placeholder)", off by default) hides the post/comment author headshot
+- New setting `reddit.hideAvatars` (toggle: "Hide avatars (blank
+  placeholder)", on by default) hides the post/comment author headshot
   image and leaves a plain, neutral circle in its place instead of removing
   the element entirely (which would collapse the layout).
 - Confirmed against the `reddit/post_with_media/` capture: every author

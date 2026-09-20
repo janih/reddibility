@@ -54,6 +54,32 @@ describe("GR.emptyState", () => {
     expect(GR.emptyState().global.enabled).toBe(true);
   });
 
+  it("defaults every reddit tweak to on (users opt out individually)", () => {
+    // Policy: a fresh install gets the full cleanup; opting out is a
+    // per-tweak user action. Adding a new toggle with `false` here must be
+    // a conscious decision — update this test if it truly should be opt-in.
+    Object.keys(GR.DEFAULTS.reddit).forEach((k) => {
+      expect(GR.DEFAULTS.reddit[k]).toBe(true);
+    });
+    const fresh = GR.emptyState().global.reddit;
+    Object.keys(fresh).forEach((k) => expect(fresh[k]).toBe(true));
+  });
+
+  it("keeps a stored per-tweak opt-out off even though defaults are on", async () => {
+    global.browser = {
+      storage: {
+        local: {
+          get: vi.fn().mockResolvedValue({
+            reddibility: { global: { reddit: { hideTopBar: false } } },
+          }),
+        },
+      },
+    };
+    const state = await GR.load();
+    expect(state.global.reddit.hideTopBar).toBe(false);
+    expect(GR.effective(state, "reddit.com").reddit.hideTopBar).toBe(false);
+  });
+
   it("deep-copies the nested reddit sub-object (regression: edits used to leak into DEFAULTS)", () => {
     // Object.assign({}, DEFAULTS) only shallow-copies, so state.global.reddit
     // used to BE GR.DEFAULTS.reddit — mutating a setting (e.g. via the

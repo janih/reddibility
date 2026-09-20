@@ -30,10 +30,11 @@ The settings panel (toolbar popup):
 - **Compact feed** — tighter post cards
 - **Better comment spacing** for easier reading
 - **Click to show images & videos** — replaces user-added post/comment media
-  with a compact "Click to show" link until you choose to reveal it (opt-in,
-  off by default)
-- **Hide top bar** — hides the sticky search/login/register bar (opt-in, off
-  by default); a tiny tab pinned to the very top edge lets you bring it back
+  with a compact "Click to show" link until you choose to reveal it (on by
+  default; note it hides media behind a click, so turn it off if you'd
+  rather see images inline)
+- **Hide top bar** — hides the sticky search/login/register bar (on by
+  default); a tiny tab pinned to the very top edge lets you bring it back
   with one click
 - **Minimize "Join" buttons** — shrinks and fades the per-post "Join" button
   shown in the feed's subreddit credit bar (on by default); it's still one
@@ -44,7 +45,7 @@ The settings panel (toolbar popup):
   toggle "Force theme colors on vote/comment/share buttons" off (on by
   default) to keep Reddit's own colors on just those elements instead
 - **Hide avatars** — replaces post/comment author headshots with a blank,
-  neutral circle placeholder of the same size (opt-in, off by default)
+  neutral circle placeholder of the same size (on by default)
 
 ### General readability (works on any site)
 - **7 themes** — Light, Sepia, Dark, High Contrast, Solarized Light/Dark, Nord
@@ -101,7 +102,8 @@ npx addons-linter reddibility.xpi
    affect **only the current site**, so Reddit gets cleaned up (ads gone,
    sidebars hidden, content widened) without changing other sites. On a
    non-Reddit site, Firefox asks once for permission to run there.
-2. Fine-tune via the **Tweaks** checkboxes, and pick a theme/typography.
+2. Fine-tune via the **Tweaks** checkboxes (all on by default), and pick a
+   theme/typography.
 3. Uncheck **This site only** to apply your changes to *all* sites instead.
 4. Press `Alt+R` to toggle the current site quickly.
 
