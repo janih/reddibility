@@ -95,14 +95,15 @@ npx addons-linter reddibility.xpi
 
 ## Usage
 
-1. Go to `reddit.com` and click the toolbar icon.
-2. Flip the master switch **on** — by default this affects **only the current
-   site**, so Reddit gets cleaned up (ads gone, sidebars hidden, content
-   widened) without changing other sites. On a non-Reddit site, Firefox
-   asks once for permission to run there.
-3. Fine-tune via the **Reddit tweaks** checkboxes, and pick a theme/typography.
-4. Uncheck **This site only** to apply your changes to *all* sites instead.
-5. Press `Alt+R` to toggle the current site quickly.
+1. Go to `reddit.com` — Reddibility is **on by default** the moment it's
+   installed (already-open tabs get it immediately too). Click the toolbar
+   icon if you want to turn it **off** or fine-tune it; by default edits
+   affect **only the current site**, so Reddit gets cleaned up (ads gone,
+   sidebars hidden, content widened) without changing other sites. On a
+   non-Reddit site, Firefox asks once for permission to run there.
+2. Fine-tune via the **Reddit tweaks** checkboxes, and pick a theme/typography.
+3. Uncheck **This site only** to apply your changes to *all* sites instead.
+4. Press `Alt+R` to toggle the current site quickly.
 
 ## File layout
 

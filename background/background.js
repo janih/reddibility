@@ -17,6 +17,28 @@ if (browser.permissions && browser.permissions.onRemoved) {
 }
 GR.reconcileSiteScripts();
 
+browser.runtime.onInstalled.addListener(async function (details) {
+  // Fresh installs default to enabled (see DEFAULTS.enabled), but content
+  // scripts only auto-run on page loads *after* install — the tabs already
+  // open at install time have neither CSS nor JS injected. Push the
+  // effective settings to every open http(s) tab so Reddibility visibly
+  // works immediately instead of after a manual reload. applyToTab's
+  // fallback injects the content script where missing; restricted pages
+  // and non-Reddit sites without granted access reject — ignore those,
+  // same as every other caller.
+  if (details.reason !== "install") return;
+  var state = await GR.load();
+  var tabs = await browser.tabs.query({});
+  for (var tab of tabs) {
+    if (!/^https?:/.test(tab.url || "")) continue;
+    var domain = GR.getDomain(tab.url);
+    var settings = GR.effective(state, domain);
+    if (!settings.enabled) continue;
+    GR.applyToTab(tab.id, settings).catch(function () {});
+    GR.updateBadge(tab.id, true);
+  }
+});
+
 browser.commands.onCommand.addListener(async function (command) {
   if (command !== "toggle-readability") return;
   var tabs = await browser.tabs.query({ active: true, currentWindow: true });

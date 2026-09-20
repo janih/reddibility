@@ -45,6 +45,15 @@ describe("GR.emptyState", () => {
     expect(GR.DEFAULTS.fontSize).not.toBe(999);
   });
 
+  it("is enabled by default (fresh installs are active immediately)", () => {
+    // A brand-new install has nothing stored, so emptyState() — driven by
+    // these defaults — is what every apply path reads. Off-by-default here
+    // meant the extension silently did nothing until the user found and
+    // flipped the popup's master switch.
+    expect(GR.DEFAULTS.enabled).toBe(true);
+    expect(GR.emptyState().global.enabled).toBe(true);
+  });
+
   it("deep-copies the nested reddit sub-object (regression: edits used to leak into DEFAULTS)", () => {
     // Object.assign({}, DEFAULTS) only shallow-copies, so state.global.reddit
     // used to BE GR.DEFAULTS.reddit — mutating a setting (e.g. via the
@@ -262,6 +271,24 @@ describe("GR.load / GR.save", () => {
     expect(state.global.reddit.hideAds).toBe(false);
     expect(state.global.reddit.hideAvatars).toBe(GR.DEFAULTS.reddit.hideAvatars);
     expect(state.global.reddit).not.toBe(GR.DEFAULTS.reddit);
+  });
+
+  it("load() keeps a stored opt-out off even though the default is on", async () => {
+    // enabled defaults to true, but anyone who ever disabled the extension
+    // has `enabled: false` materialized in storage — the default must never
+    // resurrect an explicit opt-out (e.g. after an update).
+    global.browser = {
+      storage: {
+        local: {
+          get: vi.fn().mockResolvedValue({
+            reddibility: { global: { enabled: false } },
+          }),
+        },
+      },
+    };
+    const state = await GR.load();
+    expect(state.global.enabled).toBe(false);
+    expect(GR.effective(state, "reddit.com").enabled).toBe(false);
   });
 
   it("save() writes the state under the 'reddibility' key", async () => {
