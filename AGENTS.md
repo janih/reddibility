@@ -551,6 +551,27 @@ would churn every CSS selector and test for no user-visible benefit.
   and asserts the selectors still match it and the color-mix rules still
   exist in `content.css`.
 
+## Code block / pre gotcha
+
+- Same failure class as the table striping: sites hardcode `pre` (and
+  inline `code`/`kbd`/`samp` chips) with a dark background designed for
+  their own light text. Reported case: fully black `pre` blocks with the
+  theme's black text on top in Light/Sepia; dark themes only looked fine
+  because light text matched what the block was designed for.
+- Fixed in `content/content.css`: `pre`/`code`/`kbd`/`samp` now get BOTH
+  `color: var(--gr-text)` and an 8% `color-mix()` tint of `--gr-text` into
+  `--gr-bg` as the surface — forcing only the text is exactly what caused
+  the report, and forcing only the background would break the reverse case.
+  The tint mirrors per theme like the table stripes.
+- `pre *` descendants are reset to `color: inherit` — syntax highlighters
+  (highlight.js, Pygments, …) pick token colors for the site's own scheme
+  (often pale-on-dark), which can be near-invisible on the retinted light
+  surface. Consequence: code renders monochrome under Reddibility. Token
+  *backgrounds* (e.g. diff add/del line tints) are deliberately left alone
+  — they carry meaning and remain readable with inherited text color.
+- Regression-tested in `test/code-blocks.test.js` (fixture with plain,
+  nested-`code`, and highlighted `pre`s plus inline `code`/`kbd`/`samp`).
+
 ## Conventions
 
 - Feature toggles are implemented as CSS classes (`gr-active`, `gr-reddit`,

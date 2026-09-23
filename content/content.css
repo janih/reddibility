@@ -75,6 +75,29 @@ html.gr-active samp {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
 }
 
+/* Code blocks & chips. Same failure class as the table striping below:
+   sites hardcode `pre` (and inline `code`/`kbd`/`samp`) with a dark
+   background designed for their own light text; the theme's forced dark
+   --gr-text on light themes then lands on it unreadably (real case:
+   fully black pre blocks with black text in Light/Sepia). Repaint both
+   sides from the theme: text --gr-text, surface an 8% tint of --gr-text
+   into --gr-bg — the tint mirrors direction per theme, so dark themes get
+   slightly-lighter-than-bg blocks. Syntax-highlight tokens inside pre are
+   reset to inherit because highlighters pick token colors for the site's
+   own (often dark) scheme, which can be near-invisible on the retinted
+   surface. */
+html.gr-active pre,
+html.gr-active code,
+html.gr-active kbd,
+html.gr-active samp {
+  color: var(--gr-text, #1f2328) !important;
+  background-color: color-mix(in srgb, var(--gr-text, #1f2328) 8%, var(--gr-bg, #ffffff)) !important;
+}
+
+html.gr-active pre * {
+  color: inherit !important;
+}
+
 html.gr-active pre {
   white-space: pre-wrap !important;
   word-wrap: break-word !important;
