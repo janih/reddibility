@@ -451,9 +451,16 @@ would churn every CSS selector and test for no user-visible benefit.
   (for new AMO submissions since Nov 3, 2025) `browser_specific_settings.
   gecko.data_collection_permissions` declaration — Reddibility collects
   nothing, so it declares `{ "required": ["none"] }` — is only parsed by
-  Firefox 140+ (desktop) / 142+ (Android). That's why `strict_min_version`
-  is `140.0` (also the current ESR base; `activeTab` was dropped as
-  redundant with `tabs` + host permissions — pure permission hygiene).
+  Firefox 140+ (desktop) / 142+ (Android). The manifest therefore sets
+  per-platform minimums (Mozilla's documented option 1 for this): `gecko.
+  strict_min_version: "140.0"` (also the current ESR base) and a separate
+  `gecko_android: { strict_min_version: "142.0" }` block — a single 140
+  minimum triggered the AMO/addons-linter warning "Manifest key not
+  supported by the specified minimum Firefox for Android version", because
+  Fx Android 140/141 predates `data_collection_permissions` support; the
+  split silences it by blocking install there instead. (`activeTab` was
+  dropped as redundant with `tabs` + host permissions — pure permission
+  hygiene.)
   Note: the AMO listing's data-collection questionnaire must stay
   consistent with this declaration ("no data collected").
 - The popup shows a hint row (`#site-perm-hint`) when the current site is
