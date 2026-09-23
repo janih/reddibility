@@ -518,6 +518,32 @@ would churn every CSS selector and test for no user-visible benefit.
   rule so the slider actually has an effect site-wide; more specific
   selectors (e.g. headings) can still opt out with their own line-height.
 
+## Table zebra striping gotcha
+
+- Real-world report: a Tailwind spec table striped its every-other row
+  near-black (designed for the site's own light text). Reddibility forces
+  text color via `body` inheritance (`content/content.css`) but left row
+  backgrounds untouched, so on light themes (Light/Sepia/…) the forced
+  dark `--gr-text` landed on the dark stripe — near-black on near-black.
+  Dark themes only *looked* fine because their light text happened to match
+  what the stripe was designed for; the same mismatch was latent there too.
+- Fixed in `content/content.css` (site-agnostic, applies wherever `gr-active`
+  is set, Reddit included): first neutralize `background-color` on
+  `table/thead/tbody/tfoot/tr/th/td` (stripes are set on rows or cells
+  depending on the framework), then rebuild the striping as `color-mix()`
+  tints of `--gr-text` into `--gr-bg` — even body rows get 5%, `thead th`
+  gets 10% (and is opaque, so sticky headers don't bleed scrolled content
+  through). Because the tint is derived from the active theme, it mirrors
+  automatically: light themes get slightly-darker-than-bg rows, dark themes
+  slightly-lighter ones, so text contrasts in either scheme — no per-scheme
+  class needed on `<html>`.
+- Consequence: tables that originally had **no** striping now get theme
+  striping (consistent reader-mode look), and decorative per-cell colors are
+  wiped — accepted trade-off for guaranteed contrast.
+- `test/table-striping.test.js` keeps the reported table (verbatim fixture)
+  and asserts the selectors still match it and the color-mix rules still
+  exist in `content.css`.
+
 ## Conventions
 
 - Feature toggles are implemented as CSS classes (`gr-active`, `gr-reddit`,

@@ -55,6 +55,8 @@ The settings panel (toolbar popup):
 - **Keyboard shortcut** — `Alt+R` toggles readability on the current page
 - **Badge indicator** — shows `ON` on the toolbar icon when active
 - **Optional clutter hiding** — hides common cookie banners & newsletter popups
+- **Readable tables** — site zebra striping is neutralized and retinted to
+  your theme, so text keeps its contrast even on sites that stripe rows dark
 - **Panel theme** — force the toolbar panel & options page to light/dark, or follow your system (Auto)
 
 ### Privacy-friendly site access

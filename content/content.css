@@ -80,6 +80,40 @@ html.gr-active pre {
   word-wrap: break-word !important;
 }
 
+/* Tables. Sites commonly zebra-stripe rows with a hardcoded dark color
+   designed for their own light text (real case: a Tailwind spec table whose
+   every-other row is near-black). The theme forces text color via body
+   inheritance but leaves those row backgrounds alone, so on light themes
+   (Light/Sepia/…) the dark --gr-text lands on the dark stripe — near-black
+   on near-black, unreadable; dark themes only looked fine because their
+   light text happened to match the stripe's assumption. Neutralize all
+   hardcoded table backgrounds and rebuild the striping as color-mix tints
+   of --gr-text into --gr-bg instead: light themes get slightly-darker-than-
+   background rows, dark themes slightly-lighter ones — the mix mirrors
+   direction automatically, so text always contrasts in either scheme. */
+html.gr-active table,
+html.gr-active thead,
+html.gr-active tbody,
+html.gr-active tfoot,
+html.gr-active tr,
+html.gr-active th,
+html.gr-active td {
+  background-color: transparent !important;
+}
+
+/* Header cells get a stronger tint than stripes and are opaque, which also
+   keeps sticky theads from showing scrolled content bleeding through. */
+html.gr-active thead th {
+  background-color: color-mix(in srgb, var(--gr-text, #1f2328) 10%, var(--gr-bg, #ffffff)) !important;
+}
+
+/* Re-stripe every other body row; th is included so all-header rows (some
+   wikis/spec tables) stripe too. */
+html.gr-active tbody tr:nth-child(even) td,
+html.gr-active tbody tr:nth-child(even) th {
+  background-color: color-mix(in srgb, var(--gr-text, #1f2328) 5%, var(--gr-bg, #ffffff)) !important;
+}
+
 /* Best-effort, opt-in clutter hiding. Conservative selectors only. */
 html.gr-active.gr-hide-distractions [id*="cookie-banner" i],
 html.gr-active.gr-hide-distractions [id*="cookieconsent" i],
