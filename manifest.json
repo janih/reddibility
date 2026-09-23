@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Reddibility",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Make Reddit (and any site) easier to read: declutter the feed & sidebars, hide promoted posts, comfortable themes and typography. Per-site or global.",
   "browser_specific_settings": {
     "gecko": {
